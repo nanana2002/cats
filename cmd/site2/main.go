@@ -4,30 +4,31 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"time"
 	"sync"
+	"time"
+
+	"cmas-cats-go/models"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3" // SQLite驱动
-	"cmas-cats-go/models"
 )
 
 // 全局状态：资源管理（需加锁保证并发安全）
 var (
-	db               *sql.DB
-	usedResource     int           // 已使用资源单位（动态更新）
-	resourceMutex    sync.RWMutex  // 资源操作锁（避免并发修改冲突）
+	db            *sql.DB
+	usedResource  int          // 已使用资源单位（动态更新）
+	resourceMutex sync.RWMutex // 资源操作锁（避免并发修改冲突）
 )
 
 // 服务站点核心配置（新增资源与成本相关配置）
 const (
-	ListenPort       = ":8085"                  // 服务站点监听端口
-	DBFile           = "./site2.db"              // 数据库文件路径
-	SiteID           = "site-2"                 // 站点唯一标识
-	TotalResource    = 200                      // 站点总资源单位（可根据硬件配置调整）
-	ResourcePerAR    = 25                       // 每个AR服务实例占用资源单位
-	ResourcePerTP    = 15                       // 每个交通服务实例占用资源单位
-	ResourcePerCost  = 30                       // 每30单位资源对应1个成本单位（核心：成本换算系数）
+	ListenPort      = ":8085"      // 服务站点监听端口
+	DBFile          = "./site2.db" // 数据库文件路径
+	SiteID          = "site-2"     // 站点唯一标识
+	TotalResource   = 200          // 站点总资源单位（可根据硬件配置调整）
+	ResourcePerAR   = 25           // 每个AR服务实例占用资源单位
+	ResourcePerTP   = 15           // 每个交通服务实例占用资源单位
+	ResourcePerCost = 30           // 每30单位资源对应1个成本单位（核心：成本换算系数）
 )
 
 func main() {
@@ -35,7 +36,7 @@ func main() {
 	fmt.Println("=====================================")
 	fmt.Println("          服务站点（site-2）启动中...          ")
 	fmt.Println("=====================================")
-	fmt.Printf("📌 站点总资源：%d 单位 | 成本换算：每%d单位资源=1成本\n", 
+	fmt.Printf("📌 站点总资源：%d 单位 | 成本换算：每%d单位资源=1成本\n",
 		TotalResource, ResourcePerCost)
 
 	// 1. 初始化数据库（启动时加载已用资源）
@@ -54,10 +55,10 @@ func main() {
 	r := gin.Default()
 
 	// 4. 注册API接口
-	r.POST("/deploy", deployServiceHandler)       // 部署服务实例（核心：资源+成本计算）
-	r.GET("/metrics", getMetricsHandler)          // 暴露实例metrics（供C-SMA拉取）
-	r.GET("/health", healthCheckHandler)          // 健康检查接口
-	r.GET("/resource-status", getResourceStatus)  // 新增：查看资源占用状态
+	r.POST("/deploy", deployServiceHandler)      // 部署服务实例（核心：资源+成本计算）
+	r.GET("/metrics", getMetricsHandler)         // 暴露实例metrics（供C-SMA拉取）
+	r.GET("/health", healthCheckHandler)         // 健康检查接口
+	r.GET("/resource-status", getResourceStatus) // 新增：查看资源占用状态
 
 	// 5. 启动服务
 	printStartInfo()
@@ -222,14 +223,14 @@ func deployServiceHandler(c *gin.Context) {
 		"info": models.ServiceInstanceInfo{
 			ServiceID: req.ServiceID,
 			Gas:       req.Gas,
-			Cost:      cost,          // 按资源计算的成本
+			Cost:      cost, // 按资源计算的成本
 			CSCI_ID:   csciID,
 			Delay:     delay,
 		},
 		"resource_detail": map[string]int{
-			"single_inst_resource": resourcePerInst, // 单个实例资源占用
-			"total_resource_used":  totalResourceNeed, // 本次占用总资源
-			"current_used":         usedResource, // 部署后总已用资源
+			"single_inst_resource": resourcePerInst,              // 单个实例资源占用
+			"total_resource_used":  totalResourceNeed,            // 本次占用总资源
+			"current_used":         usedResource,                 // 部署后总已用资源
 			"remaining_resource":   TotalResource - usedResource, // 剩余资源
 		},
 	})
@@ -279,10 +280,10 @@ func getResourceStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"site_id": SiteID,
-		"resource": map[string]int{
-			"total":     TotalResource,
-			"used":      usedResource,
-			"remaining": TotalResource - usedResource,
+		"resource": map[string]string{ // 值类型为string
+			"total":      fmt.Sprintf("%d", TotalResource),              // 整数转字符串
+			"used":       fmt.Sprintf("%d", usedResource),               // 整数转字符串
+			"remaining":  fmt.Sprintf("%d", TotalResource-usedResource), // 整数转字符串
 			"usage_rate": fmt.Sprintf("%.1f%%", float64(usedResource)/float64(TotalResource)*100),
 		},
 		"cost_conversion": fmt.Sprintf("每%d单位资源 = 1成本单位", ResourcePerCost),
@@ -337,9 +338,9 @@ func healthCheckHandler(c *gin.Context) {
 
 	if err := db.Ping(); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"status":  "unhealthy",
-			"reason":  "数据库连接失败",
+			"success":         false,
+			"status":          "unhealthy",
+			"reason":          "数据库连接失败",
 			"resource_status": resourceStatus,
 		})
 		return
