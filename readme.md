@@ -72,12 +72,14 @@ go run cmd/platform/main.go
 
 ```bash
 go run cmd/site/main.go
+go run cmd/site2/main.go
 ```
 
 3. 启动其他模块（如 C-SMA、C-PS）：
 
 ```bash
 go run cmd/c-sma/main.go
+go run cmd/c-ps/main.go
 ```
 
 ### 示例请求
@@ -85,11 +87,83 @@ go run cmd/c-sma/main.go
 #### 注册服务
 
 ```bash
-curl -X POST http://localhost:8080/services \
+curl -X POST http://localhost:8080/api/v1/services \
 -H "Content-Type: application/json" \
--d '{"name":"AR/VR","description":"接收传感器输入生成AR场景"}'
+-d '{
+  "name": "AR/VR",
+  "description": "接收传感器输入生成AR场景",
+  "input_format": "Motion Capture",
+  "computing_requirement": "CPU≥2.0GHz, GPU>RTX4060",
+  "storage_requirement": "16GB DRAM",
+  "computing_time": "≤1ms",
+  "code_location": "https://github.com/xxx/ar",
+  "software_dependency": ["Unity"],
+  "validation_sample": "test.mp4",
+  "validation_result": "result.json"
+}'
 ```
 
+```bash
+# 注册交通监测服务（TP100）
+curl -X POST http://localhost:8080/api/v1/services \
+-H "Content-Type: application/json" \
+-d '{
+  "name": "交通流量监测",
+  "description": "实时分析道路摄像头数据，统计车流量",
+  "input_format": "视频流（H.264）",
+  "computing_requirement": "CPU≥1.8GHz, 支持OpenCV",
+  "storage_requirement": "8GB DRAM",
+  "computing_time": "≤50ms",
+  "code_location": "https://github.com/xxx/traffic-monitor",
+  "software_dependency": ["OpenCV", "FFmpeg"],
+  "validation_sample": "traffic_sample.mp4",
+  "validation_result": "traffic_analysis.json"
+}'
+```
+
+```bash
+# 注册人脸识别服务（FR300））
+curl -X POST http://localhost:8080/api/v1/services \
+-H "Content-Type: application/json" \
+-d '{
+  "name": "人脸识别",
+  "description": "从图像中检测并识别人脸身份",
+  "input_format": "图像（JPG/PNG）",
+  "computing_requirement": "CPU≥2.5GHz, GPU≥RTX3050",
+  "storage_requirement": "32GB DRAM",
+  "computing_time": "≤200ms",
+  "code_location": "https://github.com/xxx/face-recognition",
+  "software_dependency": ["TensorFlow", "OpenCV"],
+  "validation_sample": "face_samples.zip",
+  "validation_result": "recognition_rate.json"
+}'
+```
+
+```bash
+# 注册语音转文字服务（ASR400）
+curl -X POST http://localhost:8080/api/v1/services \
+-H "Content-Type: application/json" \
+-d '{
+  "name": "语音转文字",
+  "description": "将音频中的语音转换为文本",
+  "input_format": "音频（WAV/MP3）",
+  "computing_requirement": "CPU≥2.0GHz, 8核",
+  "storage_requirement": "16GB DRAM",
+  "computing_time": "≤1s（每30秒音频）",
+  "code_location": "https://github.com/xxx/speech-to-text",
+  "software_dependency": ["PyTorch", "FFmpeg"],
+  "validation_sample": "speech_samples.wav",
+  "validation_result": "transcription_accuracy.json"
+}'
+```
+##### 查询所有已注册服务
+```bash 
+curl http://localhost:8080/api/v1/services
+```
+##### 查询单个服务详情（替换{service_id}为注册返回的ID，如AR1760101784963）
+```bash 
+curl http://localhost:8080/api/v1/services/{service_id}
+```
 #### 部署服务实例
 
 ```bash

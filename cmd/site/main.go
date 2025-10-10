@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"sync"
@@ -15,20 +16,21 @@ import (
 
 // 全局状态：资源管理（需加锁保证并发安全）
 var (
-	db            *sql.DB
-	usedResource  int          // 已使用资源单位（动态更新）
-	resourceMutex sync.RWMutex // 资源操作锁（避免并发修改冲突）
+	db                *sql.DB
+	usedResource      int                               // 已使用资源单位（动态更新）
+	resourceMutex     sync.RWMutex                      // 资源操作锁（避免并发修改冲突）
+	serviceStore      = make(map[string]models.Service) // 缓存已查询的服务信息，减少重复请求
+	serviceStoreMutex sync.RWMutex                      // 服务信息缓存锁
 )
 
-// 服务站点核心配置（新增资源与成本相关配置）
+// 服务站点核心配置（资源与成本相关）
 const (
-	ListenPort      = ":8082"      // 服务站点监听端口
-	DBFile          = "./site1.db" // 数据库文件路径
-	SiteID          = "site-1"     // 站点唯一标识
-	TotalResource   = 400          // 站点总资源单位（可根据硬件配置调整）
-	ResourcePerAR   = 40           // 每个AR服务实例占用资源单位
-	ResourcePerTP   = 10           // 每个交通服务实例占用资源单位
-	ResourcePerCost = 40           // 每30单位资源对应1个成本单位（核心：成本换算系数）
+	ListenPort        = ":8082"                                  // 服务站点监听端口
+	DBFile            = "./site1.db"                             // 数据库文件路径
+	SiteID            = "site-1"                                 // 站点唯一标识
+	TotalResource     = 400                                      // 站点总资源单位（可根据硬件调整）
+	ResourcePerCost   = 40                                       // 每40单位资源对应1个成本单位（成本换算系数）
+	PublicPlatformURL = "http://localhost:8080/api/v1/services/" // 公共服务平台查询接口前缀
 )
 
 func main() {
@@ -58,7 +60,7 @@ func main() {
 	r.POST("/deploy", deployServiceHandler)      // 部署服务实例（核心：资源+成本计算）
 	r.GET("/metrics", getMetricsHandler)         // 暴露实例metrics（供C-SMA拉取）
 	r.GET("/health", healthCheckHandler)         // 健康检查接口
-	r.GET("/resource-status", getResourceStatus) // 新增：查看资源占用状态
+	r.GET("/resource-status", getResourceStatus) // 查看资源占用状态
 
 	// 5. 启动服务
 	printStartInfo()
@@ -71,7 +73,7 @@ func main() {
 // 核心1：数据库初始化与资源加载
 // ------------------------------
 
-// initDB：初始化SQLite数据库（表结构不变，新增资源相关字段兼容）
+// initDB：初始化SQLite数据库（含资源相关字段）
 func initDB() error {
 	var err error
 
@@ -86,7 +88,7 @@ func initDB() error {
 		return fmt.Errorf("数据库验证失败：%w", err)
 	}
 
-	// 3. 创建部署实例表（保留原有结构，确保资源计算字段兼容）
+	// 3. 创建部署实例表（含资源相关字段，支持重启后加载）
 	createTableSQL := `
 	CREATE TABLE IF NOT EXISTS deployed_services (
 		id TEXT PRIMARY KEY,
@@ -96,8 +98,8 @@ func initDB() error {
 		csci_id TEXT NOT NULL,
 		created_at DATETIME NOT NULL,
 		delay INT NOT NULL,
-		resource_per_inst INT NOT NULL, -- 新增：单个实例占用资源单位（用于重启后加载）
-		total_resource_used INT NOT NULL -- 新增：该部署占用的总资源（用于重启后加载）
+		resource_per_inst INT NOT NULL, -- 单个实例资源占用（用于重启加载）
+		total_resource_used INT NOT NULL -- 该部署总资源占用（用于重启加载）
 	);`
 	_, err = db.Exec(createTableSQL)
 	if err != nil {
@@ -108,7 +110,7 @@ func initDB() error {
 	return nil
 }
 
-// loadUsedResource：从数据库加载历史部署的资源占用（避免重启后资源统计清零）
+// loadUsedResource：从数据库加载历史资源占用（避免重启后统计清零）
 func loadUsedResource() error {
 	// 查询所有已部署实例的总资源占用
 	row := db.QueryRow(`SELECT SUM(total_resource_used) FROM deployed_services`)
@@ -128,13 +130,13 @@ func loadUsedResource() error {
 }
 
 // ------------------------------
-// 核心2：部署接口（资源占比成本计算）
+// 核心2：部署接口（支持多服务类型）
 // ------------------------------
 
 // deployServiceHandler：处理服务部署请求（按资源占比计算成本）
 func deployServiceHandler(c *gin.Context) {
 	var req struct {
-		ServiceID string `json:"service_id" binding:"required"` // 目标服务ID（如AR100、TP100）
+		ServiceID string `json:"service_id" binding:"required"` // 目标服务ID（动态生成的ID，如AR1760108514766）
 		Gas       int    `json:"gas" binding:"min=1"`           // 部署实例数量（至少1个）
 	}
 
@@ -147,8 +149,18 @@ func deployServiceHandler(c *gin.Context) {
 		return
 	}
 
-	// 2. 确定单个实例的资源占用（按服务类型区分）
-	resourcePerInst, err := getResourcePerInstance(req.ServiceID)
+	// 2. 获取服务类型（按服务ID查询公共服务平台，获取服务名）
+	serviceName, err := getServiceNameByID(req.ServiceID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "获取服务信息失败：" + err.Error(),
+		})
+		return
+	}
+
+	// 3. 确定单个实例的资源占用（按服务名区分）
+	resourcePerInst, err := getResourcePerInstance(serviceName)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -157,10 +169,10 @@ func deployServiceHandler(c *gin.Context) {
 		return
 	}
 
-	// 3. 计算本次部署的总资源需求
+	// 4. 计算本次部署的总资源需求
 	totalResourceNeed := resourcePerInst * req.Gas
 
-	// 4. 检查资源是否充足（加读写锁：读已用资源，避免并发冲突）
+	// 5. 检查资源是否充足（加读写锁：读已用资源，避免并发冲突）
 	resourceMutex.RLock()
 	remainingResource := TotalResource - usedResource
 	resourceMutex.RUnlock()
@@ -180,21 +192,21 @@ func deployServiceHandler(c *gin.Context) {
 		return
 	}
 
-	// 5. （核心）按资源占比计算成本：成本 = 总占用资源 / 资源成本系数（向上取整）
+	// 6. （核心）按资源占比计算成本：成本 = 总占用资源 / 资源成本系数（向上取整）
 	cost := calculateCostByResource(totalResourceNeed)
 
-	// 6. 生成实例基础信息
+	// 7. 生成实例基础信息
 	instanceID := fmt.Sprintf("%s-%s-%d", req.ServiceID, SiteID, time.Now().UnixNano()/1e6)
 	csciID := fmt.Sprintf("http://localhost%s/%s", ListenPort, instanceID)
 	delay := 10 + (req.Gas % 10) // 模拟延迟（10-20ms，与实例数量正相关）
 	createdAt := time.Now()
 
-	// 7. 占用资源（加写锁：更新已用资源）
+	// 8. 占用资源（加写锁：更新已用资源）
 	resourceMutex.Lock()
 	usedResource += totalResourceNeed
 	resourceMutex.Unlock()
 
-	// 8. 存入数据库（新增资源相关字段，便于重启后加载）
+	// 9. 存入数据库（含资源相关字段，便于重启后加载）
 	_, err = db.Exec(`
 		INSERT INTO deployed_services (
 			id, service_id, gas, cost, csci_id, created_at, delay,
@@ -216,10 +228,10 @@ func deployServiceHandler(c *gin.Context) {
 		return
 	}
 
-	// 9. 返回成功响应（包含资源和成本明细）
+	// 10. 返回成功响应（包含资源和成本明细）
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"message": fmt.Sprintf("服务实例部署成功：%s（%d个）", req.ServiceID, req.Gas),
+		"message": fmt.Sprintf("服务实例部署成功：%s（服务名：%s，%d个实例）", req.ServiceID, serviceName, req.Gas),
 		"info": models.ServiceInstanceInfo{
 			ServiceID: req.ServiceID,
 			Gas:       req.Gas,
@@ -234,24 +246,72 @@ func deployServiceHandler(c *gin.Context) {
 			"remaining_resource":   TotalResource - usedResource, // 剩余资源
 		},
 	})
-	fmt.Printf("[%s] 部署成功：ID=%s, 服务=%s, 实例数=%d, 成本=%d（占用资源%d单位）\n",
-		time.Now().Format("15:04:05"), instanceID, req.ServiceID, req.Gas, cost, totalResourceNeed)
+	fmt.Printf("[%s] 部署成功：ID=%s, 服务名=%s, 实例数=%d, 成本=%d（占用资源%d单位）\n",
+		time.Now().Format("15:04:05"), instanceID, serviceName, req.Gas, cost, totalResourceNeed)
 }
 
 // ------------------------------
-// 核心3：资源与成本计算工具函数
+// 核心3：服务信息查询与资源计算工具函数
 // ------------------------------
 
-// getResourcePerInstance：根据服务类型获取单个实例的资源占用
-func getResourcePerInstance(serviceID string) (int, error) {
-	// 按服务类型定义资源占用（可扩展更多服务类型）
-	switch {
-	case serviceID == "AR100" || serviceID == "AR200": // AR类服务：资源占用高
-		return ResourcePerAR, nil
-	case serviceID == "TP100" || serviceID == "TP200": // 交通类服务：资源占用中
-		return ResourcePerTP, nil
+// getServiceNameByID：按服务ID查询公共服务平台，获取服务名（含缓存）
+func getServiceNameByID(serviceID string) (string, error) {
+	// 1. 先查缓存，避免重复请求公共服务平台
+	serviceStoreMutex.RLock()
+	cachedService, exists := serviceStore[serviceID]
+	serviceStoreMutex.RUnlock()
+	if exists {
+		return cachedService.Name, nil
+	}
+
+	// 2. 缓存未命中，调用公共服务平台接口查询
+	reqURL := PublicPlatformURL + serviceID
+	resp, err := http.Get(reqURL)
+	if err != nil {
+		return "", fmt.Errorf("调用公共服务平台失败：%w", err)
+	}
+	defer resp.Body.Close()
+
+	// 3. 检查响应状态码
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("公共服务平台返回错误状态码：%d（服务ID：%s）", resp.StatusCode, serviceID)
+	}
+
+	// 4. 解析响应，提取服务名
+	var result struct {
+		Success bool           `json:"success"`
+		Service models.Service `json:"service"`
+		Message string         `json:"message"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", fmt.Errorf("解析服务信息失败：%w", err)
+	}
+	if !result.Success {
+		return "", fmt.Errorf("公共服务平台查询失败：%s（服务ID：%s）", result.Message, serviceID)
+	}
+
+	// 5. 存入缓存，后续复用
+	serviceStoreMutex.Lock()
+	serviceStore[serviceID] = result.Service
+	serviceStoreMutex.Unlock()
+
+	return result.Service.Name, nil
+}
+
+// getResourcePerInstance：根据服务名分配单个实例的资源占用
+func getResourcePerInstance(serviceName string) (int, error) {
+	// 按服务名定义资源占用（覆盖所有已注册服务类型）
+	switch serviceName {
+	case "AR/VR": // AR/VR服务（如AR1760106899671）
+		return 60, nil
+	case "交通流量监测": // 交通流量监测服务（如AR1760108487856）
+		return 15, nil // 交通服务资源占用较低，15单位/实例
+	case "人脸识别": // 人脸识别服务（如AR1760108501919）
+		return 50, nil // 人脸识别计算密集，50单位/实例
+	case "语音转文字": // 语音转文字服务（如AR1760108514766）
+		return 30, nil // 语音处理中等资源消耗，30单位/实例
 	default:
-		return 0, fmt.Errorf("不支持的服务类型：%s（请先定义该服务的资源占用）", serviceID)
+		return 0, fmt.Errorf("不支持的服务类型：%s（请先在getResourcePerInstance函数中定义资源占用）", serviceName)
 	}
 }
 
@@ -272,25 +332,28 @@ func calculateCostByResource(totalResource int) int {
 // 辅助接口：状态查询与日志打印
 // ------------------------------
 
-// getResourceStatus：新增接口，查看当前资源占用状态
+// getResourceStatus：查看当前资源占用状态
 func getResourceStatus(c *gin.Context) {
 	resourceMutex.RLock()
 	defer resourceMutex.RUnlock()
 
+	remaining := TotalResource - usedResource
+	usageRate := fmt.Sprintf("%.1f%%", float64(usedResource)/float64(TotalResource)*100)
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"site_id": SiteID,
-		"resource": map[string]string{ // 值类型为string
-			"total":      fmt.Sprintf("%d", TotalResource),              // 整数转字符串
-			"used":       fmt.Sprintf("%d", usedResource),               // 整数转字符串
-			"remaining":  fmt.Sprintf("%d", TotalResource-usedResource), // 整数转字符串
-			"usage_rate": fmt.Sprintf("%.1f%%", float64(usedResource)/float64(TotalResource)*100),
+		"resource": map[string]string{
+			"total":      fmt.Sprintf("%d", TotalResource),
+			"used":       fmt.Sprintf("%d", usedResource),
+			"remaining":  fmt.Sprintf("%d", remaining),
+			"usage_rate": usageRate,
 		},
 		"cost_conversion": fmt.Sprintf("每%d单位资源 = 1成本单位", ResourcePerCost),
 	})
 }
 
-// getMetricsHandler：暴露实例metrics（不变，保留成本和延迟字段）
+// getMetricsHandler：暴露实例metrics（供C-SMA拉取）
 func getMetricsHandler(c *gin.Context) {
 	rows, err := db.Query(`
 		SELECT service_id, gas, cost, csci_id, delay
@@ -326,11 +389,12 @@ func getMetricsHandler(c *gin.Context) {
 	})
 }
 
-// healthCheckHandler：健康检查接口（新增资源状态检查）
+// healthCheckHandler：健康检查接口（含资源状态）
 func healthCheckHandler(c *gin.Context) {
 	// 检查数据库连接和资源状态
 	resourceMutex.RLock()
 	resourceStatus := "healthy"
+	usageRate := fmt.Sprintf("%.1f%%", float64(usedResource)/float64(TotalResource)*100)
 	if usedResource > TotalResource*0.9 { // 资源占用超90%标记为预警
 		resourceStatus = "warning (high resource usage)"
 	}
@@ -354,7 +418,7 @@ func healthCheckHandler(c *gin.Context) {
 		"resource_status": map[string]string{
 			"status":     resourceStatus,
 			"used":       fmt.Sprintf("%d/%d", usedResource, TotalResource),
-			"usage_rate": fmt.Sprintf("%.1f%%", float64(usedResource)/float64(TotalResource)*100),
+			"usage_rate": usageRate,
 		},
 	})
 }
@@ -364,13 +428,14 @@ func printStartInfo() {
 	resourceMutex.RLock()
 	defer resourceMutex.RUnlock()
 
+	usageRate := fmt.Sprintf("%.1f%%", float64(usedResource)/float64(TotalResource)*100)
 	fmt.Printf("\n✅ 服务站点（site-1）启动成功！\n")
 	fmt.Printf("📌 站点ID：%s\n", SiteID)
 	fmt.Printf("📌 监听地址：http://localhost%s\n", ListenPort)
-	fmt.Printf("📌 当前资源：已用%d / 总%d 单位（使用率%.1f%%）\n",
-		usedResource, TotalResource, float64(usedResource)/float64(TotalResource)*100)
+	fmt.Printf("📌 当前资源：已用%d / 总%d 单位（使用率%s）\n",
+		usedResource, TotalResource, usageRate)
 	fmt.Printf("📌 可用接口：\n")
-	fmt.Printf("   - POST   /deploy              部署服务实例\n")
+	fmt.Printf("   - POST   /deploy              部署服务实例（支持多服务类型）\n")
 	fmt.Printf("   - GET    /metrics             查看实例metrics\n")
 	fmt.Printf("   - GET    /health              健康检查\n")
 	fmt.Printf("   - GET    /resource-status     查看资源占用\n")
