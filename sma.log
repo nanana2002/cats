@@ -1,0 +1,37 @@
+=====================================
+        C-SMA 度量收集服务启动中...        
+=====================================
+✅ 已配置 2 个服务站点，拉取间隔：10s
+   1. http://172.22.118.77:8081/metrics（Host：172.22.118.77:8081）
+   2. http://192.168.243.185:8082/metrics（Host：192.168.243.185:8082）
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /sync                     --> main.syncToCPSHandler (3 handlers)
+[GIN-debug] GET    /current-metrics          --> main.getMetricsHandler (3 handlers)
+[GIN-debug] GET    /health                   --> main.healthCheckHandler (3 handlers)
+[GIN-debug] Loaded HTML Templates (3): 
+	- 
+	- dashboard.html
+	- index.html
+
+[GIN-debug] GET    /                         --> main.main.func1 (3 handlers)
+[GIN-debug] GET    /dashboard                --> main.main.func2 (3 handlers)
+
+✅ C-SMA 启动成功！
+📌 监听地址：http://172.28.125.175:8083
+📌 监控站点：http://172.22.118.77:8081/metrics,http://192.168.243.185:8082/metrics
+📌 拉取间隔：10s
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on 172.28.125.175:8083
+[GIN-debug] [ERROR] listen tcp 172.28.125.175:8083: bind: address already in use
+panic: ❌ C-SMA 启动失败：listen tcp 172.28.125.175:8083: bind: address already in use
+
+goroutine 1 [running]:
+main.main()
+	/root/go-work/src/cmas-cats-go/cmd/c-sma/main.go:77 +0x634
+exit status 2

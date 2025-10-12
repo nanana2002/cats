@@ -10,15 +10,13 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"cmas-cats-go/config"
 	"cmas-cats-go/models"
 )
 
 // 核心配置（支持多站点，可按需调整）
 const (
-	ListenPort     = ":8083"                          // C-SMA监听端口
 	PollInterval   = 10 * time.Second                 // 拉取站点metrics间隔
-	// 服务站点列表：逗号分隔，格式必须为 "http://站点地址/metrics"
-	ServiceSiteList = "http://localhost:8082/metrics,http://localhost:8085/metrics"
 )
 
 // 全局状态：聚合后的metrics（key=ServiceID，value=所有站点的实例）
@@ -33,8 +31,9 @@ func main() {
 	fmt.Println("        C-SMA 度量收集服务启动中...        ")
 	fmt.Println("=====================================")
 
-	// 1. 解析并验证服务站点列表
-	sites := parseSiteList(ServiceSiteList)
+	// 1. 从配置获取服务站点列表
+	serviceSiteList := fmt.Sprintf("%s/metrics,%s/metrics", config.Cfg.Site1.URL, config.Cfg.Site2.URL)
+	sites := parseSiteList(serviceSiteList)
 	printSiteConfig(sites)
 
 	// 2. 初始化Gin引擎
@@ -45,12 +44,36 @@ func main() {
 	r.GET("/current-metrics", getMetricsHandler) // 调试：查看当前聚合数据
 	r.GET("/health", healthCheckHandler)      // 健康检查
 
+	// 添加Web界面
+	r.LoadHTMLGlob("./templates/sma/*.html")
+	r.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html", gin.H{
+			"title": "C-SMA 度量收集服务",
+		})
+	})
+	r.GET("/dashboard", func(c *gin.Context) {
+		metricsMutex.RLock()
+		defer metricsMutex.RUnlock()
+		
+		c.HTML(http.StatusOK, "dashboard.html", gin.H{
+			"title": "服务度量数据",
+			"metrics": aggregatedMetrics,
+			"sites": sites,
+		})
+	})
+
 	// 4. 启动多站点拉取任务（后台协程，不阻塞服务）
 	go startMultiSitePolling(sites)
 
 	// 5. 启动C-SMA服务
-	fmt.Printf("\n✅ C-SMA 启动成功！监听端口：%s\n", ListenPort)
-	if err := r.Run(ListenPort); err != nil {
+	listenAddr := fmt.Sprintf("%s:%d", config.Cfg.SMA.IP, config.Cfg.SMA.Port)
+	
+	fmt.Printf("\n✅ C-SMA 启动成功！\n")
+	fmt.Printf("📌 监听地址：http://%s\n", listenAddr)
+	fmt.Printf("📌 监控站点：%s\n", serviceSiteList)
+	fmt.Printf("📌 拉取间隔：%v\n", PollInterval)
+
+	if err := r.Run(listenAddr); err != nil {
 		panic("❌ C-SMA 启动失败：" + err.Error())
 	}
 }
@@ -270,11 +293,12 @@ func syncToCPSHandler(c *gin.Context) {
 	}
 
 	// 返回同步结果（带时间戳和站点数）
+	serviceSiteList := fmt.Sprintf("%s/metrics,%s/metrics", config.Cfg.Site1.URL, config.Cfg.Site2.URL)
 	c.JSON(http.StatusOK, gin.H{
 		"success":     true,
 		"sync_time":   time.Now().Format("2006-01-02 15:04:05"),
 		"service_num": len(syncData),
-		"site_num":    len(parseSiteList(ServiceSiteList)),
+		"site_num":    len(parseSiteList(serviceSiteList)),
 		"data":        syncData,
 	})
 }
@@ -284,10 +308,11 @@ func getMetricsHandler(c *gin.Context) {
 	metricsMutex.RLock()
 	defer metricsMutex.RUnlock()
 
+	serviceSiteList := fmt.Sprintf("%s/metrics,%s/metrics", config.Cfg.Site1.URL, config.Cfg.Site2.URL)
 	c.JSON(http.StatusOK, gin.H{
 		"success":          true,
 		"last_update_time": time.Now().Format("2006-01-02 15:04:05"),
-		"monitored_sites":  len(parseSiteList(ServiceSiteList)),
+		"monitored_sites":  len(parseSiteList(serviceSiteList)),
 		"service_count":    len(aggregatedMetrics),
 		"total_instances":  countTotalInstances(),
 		"aggregated_data":  aggregatedMetrics, // 完整实例数据（含Delay）
@@ -296,7 +321,8 @@ func getMetricsHandler(c *gin.Context) {
 
 // healthCheckHandler：健康检查接口（供监控系统）
 func healthCheckHandler(c *gin.Context) {
-	sites := parseSiteList(ServiceSiteList)
+	serviceSiteList := fmt.Sprintf("%s/metrics,%s/metrics", config.Cfg.Site1.URL, config.Cfg.Site2.URL)
+	sites := parseSiteList(serviceSiteList)
 	status := "healthy"
 	if len(sites) == 0 {
 		status = "degraded" // 无站点配置，标记为降级

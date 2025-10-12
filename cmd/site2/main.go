@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"cmas-cats-go/config"
 	"cmas-cats-go/models"
 
 	"github.com/gin-gonic/gin"
@@ -25,12 +26,10 @@ var (
 
 // 服务站点核心配置（资源与成本相关）
 const (
-	ListenPort        = ":8085"                                  // 服务站点监听端口
-	DBFile            = "./site2.db"                             // 数据库文件路径
+	DBFile            = "./db/site2.db"                          // 数据库文件路径
 	SiteID            = "site-2"                                 // 站点唯一标识
 	TotalResource     = 400                                      // 站点总资源单位（可根据硬件调整）
-	ResourcePerCost   = 20                                       // 每40单位资源对应1个成本单位（成本换算系数）
-	PublicPlatformURL = "http://localhost:8080/api/v1/services/" // 公共服务平台查询接口前缀
+	ResourcePerCost   = 20                                       // 每20单位资源对应1个成本单位（成本换算系数）
 )
 
 func main() {
@@ -63,8 +62,14 @@ func main() {
 	r.GET("/resource-status", getResourceStatus) // 查看资源占用状态
 
 	// 5. 启动服务
+	listenAddr := fmt.Sprintf("%s:%d", config.Cfg.Site2.IP, config.Cfg.Site2.Port)
+	publicPlatformURL := fmt.Sprintf("%s/api/v1/services/", config.Cfg.Platform.URL)
+	
 	printStartInfo()
-	if err := r.Run(ListenPort); err != nil {
+	fmt.Printf("📌 监听地址：http://%s\n", listenAddr)
+	fmt.Printf("📌 平台地址：%s\n", publicPlatformURL)
+	
+	if err := r.Run(listenAddr); err != nil {
 		fmt.Printf("❌ 服务启动失败：%v\n", err)
 	}
 }
@@ -84,7 +89,8 @@ func initDB() error {
 	}
 
 	// 2. 验证连接
-	if err := db.Ping(); err != nil {
+	err = db.Ping()
+	if err != nil {
 		return fmt.Errorf("数据库验证失败：%w", err)
 	}
 
@@ -197,7 +203,8 @@ func deployServiceHandler(c *gin.Context) {
 
 	// 7. 生成实例基础信息
 	instanceID := fmt.Sprintf("%s-%s-%d", req.ServiceID, SiteID, time.Now().UnixNano()/1e6)
-	csciID := fmt.Sprintf("http://localhost%s/%s", ListenPort, instanceID)
+	listenAddr := fmt.Sprintf("%s:%d", config.Cfg.Site2.IP, config.Cfg.Site2.Port)
+	csciID := fmt.Sprintf("http://%s/%s", listenAddr, instanceID)
 	delay := 10 + (req.Gas % 10) // 模拟延迟（10-20ms，与实例数量正相关）
 	createdAt := time.Now()
 
@@ -265,7 +272,8 @@ func getServiceNameByID(serviceID string) (string, error) {
 	}
 
 	// 2. 缓存未命中，调用公共服务平台接口查询
-	reqURL := PublicPlatformURL + serviceID
+	publicPlatformURL := fmt.Sprintf("%s/api/v1/services/", config.Cfg.Platform.URL)
+	reqURL := publicPlatformURL + serviceID
 	resp, err := http.Get(reqURL)
 	if err != nil {
 		return "", fmt.Errorf("调用公共服务平台失败：%w", err)
@@ -431,7 +439,8 @@ func printStartInfo() {
 	usageRate := fmt.Sprintf("%.1f%%", float64(usedResource)/float64(TotalResource)*100)
 	fmt.Printf("\n✅ 服务站点（site-2）启动成功！\n")
 	fmt.Printf("📌 站点ID：%s\n", SiteID)
-	fmt.Printf("📌 监听地址：http://localhost%s\n", ListenPort)
+	listenAddr := fmt.Sprintf("%s:%d", config.Cfg.Site2.IP, config.Cfg.Site2.Port)
+	fmt.Printf("📌 监听地址：http://%s\n", listenAddr)
 	fmt.Printf("📌 当前资源：已用%d / 总%d 单位（使用率%s）\n",
 		usedResource, TotalResource, usageRate)
 	fmt.Printf("📌 可用接口：\n")

@@ -1,0 +1,31 @@
+=====================================
+        C-PS 路径选择服务启动中...        
+=====================================
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /request-service          --> main.handleClientRequest (4 handlers)
+[GIN-debug] GET    /refresh-metrics          --> main.refreshMetricsCache (3 handlers)
+[GIN-debug] GET    /cached-metrics           --> main.getCachedMetrics (3 handlers)
+[GIN-debug] Loaded HTML Templates (3): 
+	- 
+	- dashboard.html
+	- index.html
+
+[GIN-debug] GET    /                         --> main.main.func1 (3 handlers)
+[GIN-debug] GET    /dashboard                --> main.main.func2 (3 handlers)
+[15:53:06] 同步C-SMA成功：4个服务，共6个实例
+✅ 预加载成功！当前缓存 4 个服务的实例数据
+
+✅ C-PS 启动成功！
+📌 监听地址：http://172.28.125.175:8084
+📌 C-SMA 同步地址：http://172.28.125.175:8083/sync
+📌 缓存过期时间：5m0s
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on 172.28.125.175:8084
+[GIN-debug] [ERROR] listen tcp 172.28.125.175:8084: bind: address already in use
+❌ C-PS 启动失败：listen tcp 172.28.125.175:8084: bind: address already in use

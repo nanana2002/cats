@@ -1,0 +1,32 @@
+=====================================
+        公共服务平台启动中...        
+=====================================
+✅ 数据库初始化成功（SQLite）
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /api/v1/services          --> main.registerServiceHandler (3 handlers)
+[GIN-debug] GET    /api/v1/services          --> main.getServicesHandler (3 handlers)
+[GIN-debug] GET    /api/v1/services/:id      --> main.getServiceByIDHandler (3 handlers)
+
+✅ 公共服务平台启动成功！
+📌 监听地址：http://172.28.125.175:8080
+📌 可用接口：
+   - POST   /api/v1/services       注册服务
+   - GET    /api/v1/services       获取所有服务
+   - GET    /api/v1/services/:id   获取单个服务详情
+[GIN-debug] Loaded HTML Templates (3): 
+	- 
+	- dashboard.html
+	- index.html
+
+[GIN-debug] GET    /                         --> main.main.func1 (3 handlers)
+[GIN-debug] GET    /dashboard                --> main.main.func2 (3 handlers)
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on 172.28.125.175:8080
+[GIN-debug] [ERROR] listen tcp 172.28.125.175:8080: bind: address already in use
+❌ 服务启动失败：listen tcp 172.28.125.175:8080: bind: address already in use

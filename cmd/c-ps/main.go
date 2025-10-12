@@ -9,13 +9,12 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"cmas-cats-go/config"
 	"cmas-cats-go/models"
 )
 
 // 核心配置常量
 const (
-	ListenPort     = ":8084"                          // C-PS监听端口
-	CSMASyncURL    = "http://localhost:8083/sync"     // C-SMA同步接口地址
 	MaxSyncRetry   = 3                                // 同步重试次数
 	RetryInterval  = 2 * time.Second                  // 重试间隔
 	CacheExpire    = 5 * time.Minute                  // 缓存过期时间
@@ -49,6 +48,33 @@ func main() {
 	r.GET("/refresh-metrics", refreshMetricsCache)                    // 手动刷新缓存
 	r.GET("/cached-metrics", getCachedMetrics)                        // 查看缓存数据
 
+	// 添加Web界面
+	r.LoadHTMLGlob("./templates/ps/*.html")
+	r.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html", gin.H{
+			"title": "C-PS 路径选择服务",
+		})
+	})
+	r.GET("/dashboard", func(c *gin.Context) {
+		mutex.RLock()
+		defer mutex.RUnlock()
+		
+		// 准备展示数据
+		services := make(map[string][]models.ServiceInstanceInfo)
+		for k, v := range cachedMetrics {
+			services[k] = v
+		}
+		
+		c.HTML(http.StatusOK, "dashboard.html", gin.H{
+			"title": "服务实例数据",
+			"services": services,
+			"lastSync": lastSyncTime.Format("2006-01-02 15:04:05"),
+		})
+	})
+
+	// 从配置获取C-SMA同步地址
+	CSMASyncURL := fmt.Sprintf("http://%s:%d/sync", config.Cfg.SMA.IP, config.Cfg.SMA.Port)
+
 	// 预加载C-SMA数据
 	if err := syncMetricsFromCSMA(); err != nil {
 		fmt.Printf("⚠️ 预加载C-SMA数据失败：%v（将在首次请求时重试）\n", err)
@@ -56,13 +82,16 @@ func main() {
 		fmt.Printf("✅ 预加载成功！当前缓存 %d 个服务的实例数据\n", len(cachedMetrics))
 	}
 
+	// 从配置获取监听地址
+	listenAddr := fmt.Sprintf("%s:%d", config.Cfg.PS.IP, config.Cfg.PS.Port)
+
 	// 启动服务
 	fmt.Printf("\n✅ C-PS 启动成功！\n")
-	fmt.Printf("📌 监听地址：http://localhost%s\n", ListenPort)
+	fmt.Printf("📌 监听地址：http://%s\n", listenAddr)
 	fmt.Printf("📌 C-SMA 同步地址：%s\n", CSMASyncURL)
 	fmt.Printf("📌 缓存过期时间：%v\n", CacheExpire)
 
-	if err := r.Run(ListenPort); err != nil {
+	if err := r.Run(listenAddr); err != nil {
 		fmt.Printf("❌ C-PS 启动失败：%v\n", err)
 	}
 }
@@ -100,7 +129,8 @@ func authMiddleware() gin.HandlerFunc {
 // ------------------------------
 func syncMetricsFromCSMA() error {
 	// 发送请求到C-SMA
-	resp, err := http.Get(CSMASyncURL)
+	csmaSyncURL := fmt.Sprintf("%s/sync", config.Cfg.SMA.URL)
+	resp, err := http.Get(csmaSyncURL)
 	if err != nil {
 		return fmt.Errorf("请求C-SMA失败：%w", err)
 	}

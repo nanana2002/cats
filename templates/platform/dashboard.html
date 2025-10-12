@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ .title }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; }
+        .nav { margin-top: 20px; }
+        .nav a { margin-right: 15px; text-decoration: none; color: #4CAF50; }
+        .content { margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        table, th, td { border: 1px solid #ddd; }
+        th, td { padding: 12px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>服务管理面板</h1>
+    </div>
+    <div class="nav">
+        <a href="/">首页</a>
+        <a href="/dashboard">服务管理</a>
+    </div>
+    <div class="content">
+        <h2>已注册服务列表</h2>
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>名称</th>
+                <th>描述</th>
+                <th>操作</th>
+            </tr>
+            {{range .services}}
+            <tr>
+                <td>{{.ID}}</td>
+                <td>{{.Name}}</td>
+                <td>{{.Description}}</td>
+                <td><a href="/api/v1/services/{{.ID}}">查看详情</a></td>
+            </tr>
+            {{end}}
+        </table>
+    </div>
+</body>
+</html>

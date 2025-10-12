@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3" // SQLite驱动
+	"cmas-cats-go/config"
 	"cmas-cats-go/models"
 )
 
@@ -37,16 +38,41 @@ func main() {
 	r.GET("/api/v1/services/:id", getServiceByIDHandler)     // 获取单个服务详情
 
 	// 4. 启动服务
-	listenPort := ":8080"
+	// 从配置文件获取IP和端口
+	listenAddr := fmt.Sprintf("%s:%d", config.Cfg.Platform.IP, config.Cfg.Platform.Port)
 	fmt.Printf("\n✅ 公共服务平台启动成功！\n")
-	fmt.Printf("📌 监听地址：http://localhost%s\n", listenPort)
+	fmt.Printf("📌 监听地址：http://%s\n", listenAddr)
 	fmt.Printf("📌 可用接口：\n")
 	fmt.Printf("   - POST   /api/v1/services       注册服务\n")
 	fmt.Printf("   - GET    /api/v1/services       获取所有服务\n")
 	fmt.Printf("   - GET    /api/v1/services/:id   获取单个服务详情\n")
 
+	// 添加简单的Web界面
+	r.LoadHTMLGlob("./templates/platform/*.html")
+	r.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html", gin.H{
+			"title": "公共服务平台",
+		})
+	})
+	r.GET("/dashboard", func(c *gin.Context) {
+		services := []models.Service{}
+		rows, err := db.Query("SELECT id, name, description FROM services")
+		if err == nil {
+			defer rows.Close()
+			for rows.Next() {
+				var svc models.Service
+				rows.Scan(&svc.ID, &svc.Name, &svc.Description)
+				services = append(services, svc)
+			}
+		}
+		c.HTML(http.StatusOK, "dashboard.html", gin.H{
+			"title": "服务管理面板",
+			"services": services,
+		})
+	})
+
 	// 启动HTTP服务（带错误处理）
-	if err := r.Run(listenPort); err != nil {
+	if err := r.Run(listenAddr); err != nil {
 		fmt.Printf("❌ 服务启动失败：%v\n", err)
 	}
 }
@@ -56,13 +82,14 @@ func initDB() error {
 	var err error
 
 	// 1. 打开数据库文件（不存在则自动创建）
-	db, err = sql.Open("sqlite3", "./platform.db")
+	db, err = sql.Open("sqlite3", "./db/platform.db")
 	if err != nil {
 		return fmt.Errorf("数据库连接失败：%w", err)
 	}
 
 	// 2. 验证数据库连接（sql.Open不会立即连接，需手动Ping）
-	if err := db.Ping(); err != nil {
+	err = db.Ping()
+	if err != nil {
 		return fmt.Errorf("数据库连接验证失败：%w", err)
 	}
 

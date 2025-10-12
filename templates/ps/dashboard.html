@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ .title }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        .header { background-color: #3498db; color: white; padding: 20px; text-align: center; }
+        .nav { margin-top: 20px; }
+        .nav a { margin-right: 15px; text-decoration: none; color: #3498db; }
+        .content { margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        table, th, td { border: 1px solid #ddd; }
+        th, td { padding: 12px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>服务实例数据</h1>
+    </div>
+    <div class="nav">
+        <a href="/">首页</a>
+        <a href="/dashboard">服务数据</a>
+        <a href="/refresh-metrics">刷新缓存</a>
+    </div>
+    <div class="content">
+        <h2>当前缓存的服务实例数据</h2>
+        <p>最后同步时间: {{ .lastSync }}</p>
+        
+        {{range $serviceID, $instances := .services}}
+        <h3>服务ID: {{$serviceID}}</h3>
+        <table>
+            <tr>
+                <th>服务实例ID</th>
+                <th>可用数量</th>
+                <th>成本</th>
+                <th>访问地址</th>
+            </tr>
+            {{range $instance := $instances}}
+            <tr>
+                <td>{{$instance.ServiceID}}</td>
+                <td>{{$instance.Gas}}</td>
+                <td>{{$instance.Cost}}</td>
+                <td>{{$instance.CSCI_ID}}</td>
+            </tr>
+            {{end}}
+        </table>
+        {{end}}
+    </div>
+</body>
+</html>
