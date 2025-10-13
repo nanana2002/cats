@@ -55,9 +55,9 @@ var Cfg = struct {
         Port int
         URL  string
     }{
-        IP:   "192.168.243.185",
+        IP:   "172.25.21.118",
         Port: 8082,
-        URL:  "http://192.168.243.185:8082",
+        URL:  "http://172.25.21.118:8082",
     },
     SMA: struct {
         IP   string
@@ -79,7 +79,7 @@ var Cfg = struct {
     },
     MonitoredSites: []string{
         "http://172.22.118.77:8081",
-        "http://192.168.243.185:8082",
+        "http://172.25.21.118:8082",
     },
     Resource: struct {
         Site1Total int

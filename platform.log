@@ -28,5 +28,3 @@
 [GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
 Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
 [GIN-debug] Listening and serving HTTP on 172.28.125.175:8080
-[GIN-debug] [ERROR] listen tcp 172.28.125.175:8080: bind: address already in use
-❌ 服务启动失败：listen tcp 172.28.125.175:8080: bind: address already in use

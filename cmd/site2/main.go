@@ -26,10 +26,10 @@ var (
 
 // 服务站点核心配置（资源与成本相关）
 const (
-	DBFile            = "./db/site2.db"                          // 数据库文件路径
-	SiteID            = "site-2"                                 // 站点唯一标识
-	TotalResource     = 400                                      // 站点总资源单位（可根据硬件调整）
-	ResourcePerCost   = 20                                       // 每20单位资源对应1个成本单位（成本换算系数）
+	DBFile          = "./db/site2.db" // 数据库文件路径
+	SiteID          = "site-2"        // 站点唯一标识
+	TotalResource   = 400             // 站点总资源单位（可根据硬件调整）
+	ResourcePerCost = 20              // 每20单位资源对应1个成本单位（成本换算系数）
 )
 
 func main() {
@@ -62,15 +62,15 @@ func main() {
 	r.GET("/resource-status", getResourceStatus) // 查看资源占用状态
 
 	// 5. 启动服务
-	listenAddr := fmt.Sprintf("%s:%d", config.Cfg.Site2.IP, config.Cfg.Site2.Port)
+	listenAddr := "0.0.0.0:8082"
 	publicPlatformURL := fmt.Sprintf("%s/api/v1/services/", config.Cfg.Platform.URL)
-	
+
 	printStartInfo()
 	fmt.Printf("📌 监听地址：http://%s\n", listenAddr)
 	fmt.Printf("📌 平台地址：%s\n", publicPlatformURL)
-	
+
 	if err := r.Run(listenAddr); err != nil {
-		fmt.Printf("❌ 服务启动失败：%v\n", err)
+		fmt.Printf("服务启动失败：%v\n", err)
 	}
 }
 

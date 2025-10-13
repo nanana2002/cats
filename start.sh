@@ -5,7 +5,7 @@ export PLATFORM_IP="172.28.125.175"  # WSL IP
 export PLATFORM_PORT=8080
 export SITE1_IP="172.22.118.77"      # Windows主机IP
 export SITE1_PORT=8081
-export SITE2_IP="192.168.243.185"      # WSL所在Windows的IP
+export SITE2_IP="172.25.21.118"      # WSL所在Windows的IP
 export SITE2_PORT=8082
 export SMA_IP="172.28.125.175"       # WSL IP
 export SMA_PORT=8083
@@ -151,11 +151,26 @@ echo "- 服务站点2: http://$SITE2_IP:$SITE2_PORT"
 echo "- C-SMA: http://$SMA_IP:$SMA_PORT"
 echo "- C-PS: http://$PS_IP:$PS_PORT"
 
-# 添加停止脚本
+# 动态生成 stop.sh
 cat > stop.sh <<EOL
 #!/bin/bash
+
 echo "正在停止所有服务..."
 kill $PLATFORM_PID $SITE1_PID $SITE2_PID $SMA_PID $PS_PID 2>/dev/null
+
+# 检查端口是否释放
+ports=($PLATFORM_PORT $SITE1_PORT $SITE2_PORT $SMA_PORT $PS_PORT)
+for port in "\${ports[@]}"; do
+    if lsof -i :\$port > /dev/null; then
+        echo "警告: 端口 \$port 未释放，尝试强制清理..."
+        fuser -k \$port/tcp
+        echo "端口 \$port 已强制释放"
+    else
+        echo "端口 \$port 已成功释放"
+    fi
+
+done
+
 echo "所有服务已停止"
 EOL
 chmod +x stop.sh

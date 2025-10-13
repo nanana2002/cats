@@ -26,10 +26,10 @@ var (
 
 // 服务站点核心配置（资源与成本相关）
 const (
-	DBFile            = "./db/site1.db"                          // 数据库文件路径
-	SiteID            = "site-1"                                 // 站点唯一标识
-	TotalResource     = 400                                      // 站点总资源单位（可根据硬件调整）
-	ResourcePerCost   = 40                                       // 每40单位资源对应1个成本单位（成本换算系数）
+	DBFile          = "./db/site1.db" // 数据库文件路径
+	SiteID          = "site-1"        // 站点唯一标识
+	TotalResource   = 400             // 站点总资源单位（可根据硬件调整）
+	ResourcePerCost = 40              // 每40单位资源对应1个成本单位（成本换算系数）
 )
 
 func main() {
@@ -62,15 +62,15 @@ func main() {
 	r.GET("/resource-status", getResourceStatus) // 查看资源占用状态
 
 	// 5. 启动服务
-	listenAddr := fmt.Sprintf("%s:%d", config.Cfg.Site1.IP, config.Cfg.Site1.Port)
+	listenAddr := "0.0.0.0:8081"
 	publicPlatformURL := fmt.Sprintf("%s/api/v1/services/", config.Cfg.Platform.URL)
-	
+
 	printStartInfo()
 	fmt.Printf("📌 监听地址：http://%s\n", listenAddr)
 	fmt.Printf("📌 平台地址：%s\n", publicPlatformURL)
-	
+
 	if err := r.Run(listenAddr); err != nil {
-		fmt.Printf("❌ 服务启动失败：%v\n", err)
+		fmt.Printf("服务启动失败：%v\n", err)
 	}
 }
 
@@ -363,11 +363,14 @@ func getResourceStatus(c *gin.Context) {
 
 // getMetricsHandler：暴露实例metrics（供C-SMA拉取）
 func getMetricsHandler(c *gin.Context) {
+	fmt.Println("[DEBUG] /metrics endpoint accessed")
+
 	rows, err := db.Query(`
 		SELECT service_id, gas, cost, csci_id, delay
 		FROM deployed_services
 		ORDER BY created_at DESC`)
 	if err != nil {
+		fmt.Printf("[ERROR] Failed to query metrics: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success": false,
 			"message": "查询metrics失败：" + err.Error(),
@@ -382,11 +385,13 @@ func getMetricsHandler(c *gin.Context) {
 		if err := rows.Scan(
 			&m.ServiceID, &m.Gas, &m.Cost, &m.CSCI_ID, &m.Delay,
 		); err != nil {
-			fmt.Printf("⚠️ 解析metrics失败：%v\n", err)
+			fmt.Printf("[WARNING] Failed to parse metrics row: %v\n", err)
 			continue
 		}
 		metrics = append(metrics, m)
 	}
+
+	fmt.Printf("[DEBUG] Metrics retrieved: %d records\n", len(metrics))
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
