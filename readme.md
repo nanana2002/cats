@@ -1,51 +1,103 @@
 # CMAS-CATS-Go
 
-CMAS-CATS-Go 是一个基于 Go 语言开发的算力网实践项目，旨在模拟服务站点的部署、监控和管理。项目采用模块化设计，包含多个独立的微服务模块。
+CMAS-CATS-Go 是一个基于 Go 语言开发的算力网实践项目，旨在模拟服务站点的部署、监控和管理。项目采用模块化设计，包含多个独立的微服务模块，支持实时监控功能。
 
 ## 项目背景
 
-CMAS（Computing Metrics as a Service）草案提出了一种“计算指标即服务”的方法，用于标准化和简化算力指标的广播与管理。CMAS-CATS-Go 项目实现了这一思想，构建了一个完整的算力网络流量调度系统原型。
+CMAS（Computing Metrics as a Service）草案提出了一种"计算指标即服务"的方法，用于标准化和简化算力指标的广播与管理。CMAS-CATS-Go 项目实现了这一思想，构建了一个完整的算力网络流量调度系统原型。
 
 ## 项目结构
 
 ```
 .
-├── cmd/                # 各模块的命令行入口
-│   ├── c-ps/          # C-PS 模块（路径选择器）
-│   ├── c-sma/         # C-SMA 模块（服务指标代理）
-│   ├── platform/      # 平台模块（公共服务平台）
-│   ├── site/          # 站点模块（服务站点）
-│   └── site2/         # 第二站点模块
-├── models/             # 数据模型定义
-│   └── service.go     # 服务实例信息模型
-├── main.go             # 主站点服务入口
-├── platform.db         # 平台数据库
-├── site1.db            # 站点1数据库
-├── site2.db            # 站点2数据库
-├── go.mod              # Go 模块依赖管理
-├── go.sum              # Go 模块依赖版本锁定
-└── readme.md           # 项目说明文档
+├── api.js                # Node.js API 示例（说明文件）
+├── go.mod                # Go 模块依赖管理
+├── go.sum                # Go 模块依赖版本锁定
+├── go技术方案.md         # Go 技术方案文档
+├── index.html            # Web 界面主页面（包含实时监控功能）
+├── main.go               # 主站点服务入口（site-1）
+├── readme.md             # 项目说明文档
+├── start-remote.sh       # 远程启动脚本
+├── start.sh              # 本地启动脚本
+├── stop.sh               # 停止脚本
+├── sync-code.sh          # 代码同步脚本
+├── upload_handler.go     # 文件上传处理模块
+├── cmd/                  # 各模块的命令行入口
+│   ├── c-ps/            # C-PS 模块（路径选择器）
+│   ├── c-sma/           # C-SMA 模块（服务指标代理）
+│   ├── platform/        # 平台模块（公共服务平台）
+│   ├── site/            # 站点模块（服务站点）
+│   └── site2/           # 第二站点模块
+├── config/               # 配置模块
+│   └── config.go         # 全局配置文件
+├── db/                   # 数据库目录
+├── logs/                 # 日志目录
+├── models/               # 数据模型定义
+│   └── service.go        # 服务和实例信息模型
+├── scripts/              # 脚本目录
+└── templates/            # 模板目录
 ```
 
-## 功能模块
+## 核心模块
 
-1. **公共服务平台（Platform）**
-   - 提供服务注册、验证和查询功能。
-   - 接口示例：
-     - `POST /services`：注册服务。
-     - `GET /services`：查询所有服务。
+### 1. 公共服务平台（Platform）
+- 负责服务注册和元数据管理
+- 提供服务的注册、查询和验证接口
+- 部署在配置指定的平台地址
 
-2. **服务站点（Site）**
-   - 模拟算力提供者，支持服务实例的部署和管理。
-   - 接口示例：
-     - `POST /deploy`：部署服务实例。
-     - `GET /metrics`：暴露服务实例的指标。
+### 2. 服务站点（Site）
+- 模拟算力提供者，管理服务实例的部署和运行
+- 包含两个站点：site1 和 site2，配置在不同地址和端口
+- 支持多服务类型（AR/VR、交通流量监测、人脸识别、语音转文字等）
+- 提供部署、指标暴露、健康检查等功能
+- 包含上传和执行脚本功能
 
-3. **服务指标代理（C-SMA）**
-   - 定期从服务站点收集指标并广播。
+### 3. 服务指标代理（C-SMA）
+- 定期从各服务站点收集指标数据
+- 聚合并去重来自多个站点的实例信息
+- 提供统一的监控数据接口
+- 每10秒拉取一次各站点的指标数据
 
-4. **路径选择器（C-PS）**
-   - 根据用户请求选择最优服务实例。
+### 4. 路径选择器（C-PS）
+- 根据客户端请求选择最优服务实例
+- 基于成本、延迟等指标进行路径选择
+
+### 5. Web 界面（WebUI）
+- 提供图形化界面进行部署和监控
+- 支持代码包和启动脚本的上传
+- 包含实时监控面板，显示 C-SMA 收集的数据
+- 提供资源选择、部署和停止功能
+
+## 配置系统
+
+项目使用 `config/config.go` 进行统一配置管理：
+
+```go
+var Cfg = struct {
+    Platform struct{ IP string; Port int; URL string }
+    Site1    struct{ IP string; Port int; URL string }
+    Site2    struct{ IP string; Port int; URL string }
+    SMA      struct{ IP string; Port int; URL string }
+    PS       struct{ IP string; Port int; URL string }
+    MonitoredSites []string
+    Resource struct{ Site1Total, Site2Total int }
+}{
+    Platform: struct{ IP string; Port int; URL string }{IP: "192.168.67.185", Port: 8080, URL: "http://192.168.67.185:8080"},
+    Site1:    struct{ IP string; Port int; URL string }{IP: "192.168.235.48", Port: 8081, URL: "http://192.168.235.48:8081"},
+    Site2:    struct{ IP string; Port int; URL string }{IP: "192.168.67.159", Port: 8085, URL: "http://192.168.67.159:8085"},
+    SMA:      struct{ IP string; Port int; URL string }{IP: "192.168.67.185", Port: 8083, URL: "http://192.168.67.185:8083"},
+    PS:       struct{ IP string; Port int; URL string }{IP: "192.168.67.185", Port: 8084, URL: "http://192.168.67.185:8084"},
+    MonitoredSites: []string{
+        "http://192.168.235.48:8081",
+        "http://192.168.67.159:8085",
+    },
+    Resource: struct{ Site1Total, Site2Total int }{Site1Total: 400, Site2Total: 500},
+}
+
+func GetAllSiteURLs() []string {
+    return Cfg.MonitoredSites
+}
+```
 
 ## 快速开始
 
@@ -53,138 +105,127 @@ CMAS（Computing Metrics as a Service）草案提出了一种“计算指标即�
 
 - Go 1.21.0 或更高版本
 - SQLite 数据库
+- SSH 访问权限（用于远程站点部署）
 
-### 安装依赖
+### 部署方式
 
+项目支持两种部署方式：
+
+#### 方式一：本地启动
 ```bash
-go mod tidy
+./start.sh
 ```
 
-### 启动服务
+该脚本会：
+1. 生成并更新配置文件
+2. 通过 SSH 启动远程站点服务
+3. 启动本地平台、C-SMA、C-PS 和 WebUI 服务
 
-1. 启动公共服务平台：
+#### 方式二：手动启动
+分别启动各模块：
 
 ```bash
+# 启动公共服务平台
 go run cmd/platform/main.go
-```
 
-2. 启动服务站点：
-
-```bash
+# 启动服务站点
 go run cmd/site/main.go
 go run cmd/site2/main.go
-```
 
-3. 启动其他模块（如 C-SMA、C-PS）：
-
-```bash
+# 启动 C-SMA（服务指标代理）
 go run cmd/c-sma/main.go
+
+# 启动 C-PS（路径选择器）
 go run cmd/c-ps/main.go
+
+# 启动 WebUI
+go run cmd/webui/main.go
 ```
 
-### 示例请求
+### 访问服务
 
-#### 注册服务
+- Web 界面：`http://localhost:9091`
+- 平台 API：`http://<platform-ip>:<platform-port>`
+- 站点1 API：`http://<site1-ip>:<site1-port>`
+- 站点2 API：`http://<site2-ip>:<site2-port>`
+- C-SMA：`http://<sma-ip>:<sma-port>`
+- C-PS：`http://<ps-ip>:<ps-port>`
 
-```bash
-curl -X POST http://172.25.21.118:8082/api/v1/services \
--H "Content-Type: application/json" \
--d '{
-  "name": "AR/VR",
-  "description": "接收传感器输入生成AR场景",
-  "input_format": "Motion Capture",
-  "computing_requirement": "CPU≥2.0GHz, GPU>RTX4060",
-  "storage_requirement": "16GB DRAM",
-  "computing_time": "≤1ms",
-  "code_location": "https://github.com/xxx/ar",
-  "software_dependency": ["Unity"],
-  "validation_sample": "test.mp4",
-  "validation_result": "result.json"
-}'
+## Web 界面功能
+
+### 部署功能
+- **代码上传**：支持 ZIP 格式代码包上传
+- **脚本上传**：支持 SH 格式启动脚本上传
+- **资源选择**：选择目标服务站点进行部署
+- **部署执行**：一键部署到选定站点
+- **停止服务**：停止运行中的服务
+
+### 实时监控
+- **自动刷新**：每10秒自动从 C-SMA 获取最新数据
+- **数据展示**：显示来自所有站点的服务实例详细信息
+- **状态信息**：显示上次更新时间、监控站点数、服务总数和实例总数
+- **实例详情**：展示实例地址、数量、成本和延迟等信息
+
+## API 接口
+
+### 平台 API
+- `POST /api/v1/services`：注册服务
+- `GET /api/v1/services`：查询所有服务
+- `GET /api/v1/services/{id}`：查询单个服务
+
+### 站点 API
+- `POST /deploy`：部署服务实例
+- `GET /metrics`：获取实例指标
+- `GET /health`：健康检查
+- `GET /resource-status`：资源占用状态
+- `POST /upload`：上传文件
+- `POST /execute`：执行脚本
+
+### WebUI API
+- `GET /api/resources`：获取可用资源
+- `POST /api/deploy`：部署代码
+- `POST /api/stop`：停止服务
+- `GET /api/status/:siteId`：获取站点状态
+
+### C-SMA API
+- `GET /current-metrics`：获取聚合指标数据
+- `GET /sync`：同步数据到 C-PS
+- `GET /health`：健康检查
+
+## 数据模型
+
+### Service（服务模型）
+```go
+type Service struct {
+    ID                 string   // 服务唯一ID
+    Name               string   // 服务名称
+    Description        string   // 服务功能描述
+    InputFormat        string   // 服务输入格式
+    ComputingRequirement string // 计算资源要求
+    StorageRequirement string   // 存储资源要求
+    ComputingTime      string   // 单次计算延迟
+    CodeLocation       string   // 服务代码地址
+    SoftwareDependency []string // 软件依赖
+    CreatedAt          time.Time // 创建时间
+}
 ```
 
-```bash
-# 注册交通监测服务（TP100）
-curl -X POST http://localhost:8080/api/v1/services \
--H "Content-Type: application/json" \
--d '{
-  "name": "交通流量监测",
-  "description": "实时分析道路摄像头数据，统计车流量",
-  "input_format": "视频流（H.264）",
-  "computing_requirement": "CPU≥1.8GHz, 支持OpenCV",
-  "storage_requirement": "8GB DRAM",
-  "computing_time": "≤50ms",
-  "code_location": "https://github.com/xxx/traffic-monitor",
-  "software_dependency": ["OpenCV", "FFmpeg"],
-  "validation_sample": "traffic_sample.mp4",
-  "validation_result": "traffic_analysis.json"
-}'
-```
-
-```bash
-# 注册人脸识别服务（FR300））
-curl -X POST http://localhost:8080/api/v1/services \
--H "Content-Type: application/json" \
--d '{
-  "name": "人脸识别",
-  "description": "从图像中检测并识别人脸身份",
-  "input_format": "图像（JPG/PNG）",
-  "computing_requirement": "CPU≥2.5GHz, GPU≥RTX3050",
-  "storage_requirement": "32GB DRAM",
-  "computing_time": "≤200ms",
-  "code_location": "https://github.com/xxx/face-recognition",
-  "software_dependency": ["TensorFlow", "OpenCV"],
-  "validation_sample": "face_samples.zip",
-  "validation_result": "recognition_rate.json"
-}'
-```
-
-```bash
-# 注册语音转文字服务（ASR400）
-curl -X POST http://localhost:8080/api/v1/services \
--H "Content-Type: application/json" \
--d '{
-  "name": "语音转文字",
-  "description": "将音频中的语音转换为文本",
-  "input_format": "音频（WAV/MP3）",
-  "computing_requirement": "CPU≥2.0GHz, 8核",
-  "storage_requirement": "16GB DRAM",
-  "computing_time": "≤1s（每30秒音频）",
-  "code_location": "https://github.com/xxx/speech-to-text",
-  "software_dependency": ["PyTorch", "FFmpeg"],
-  "validation_sample": "speech_samples.wav",
-  "validation_result": "transcription_accuracy.json"
-}'
-```
-##### 查询所有已注册服务
-```bash 
-curl http://localhost:8080/api/v1/services
-```
-##### 查询单个服务详情（替换{service_id}为注册返回的ID，如AR1760101784963）
-```bash 
-curl http://localhost:8080/api/v1/services/{service_id}
-```
-#### 部署服务实例
-
-```bash
-curl -X POST http://localhost:8082/deploy \
--H "Content-Type: application/json" \
--d '{"service_id": "example-service", "gas": 5}'
-```
-
-#### 查询 Metrics
-
-```bash
-curl -X GET http://localhost:8082/metrics
+### ServiceInstanceInfo（服务实例信息模型）
+```go
+type ServiceInstanceInfo struct {
+    ServiceID string // 关联的服务ID
+    Gas       int    // 可用服务实例数量
+    Cost      int    // 单次服务成本
+    CSCI_ID   string // 服务接触实例地址
+    Delay     int    // 延迟（ms）
+}
 ```
 
 ## 数据库设计
 
-项目使用 SQLite 数据库，包含以下表：
+项目使用 SQLite 数据库存储服务实例信息：
 
-- **deployed_services**：存储部署的服务实例信息。
-
-字段：
+**deployed_services 表**：
 - `id`：实例唯一标识
 - `service_id`：服务 ID
 - `gas`：实例数量
@@ -192,133 +233,67 @@ curl -X GET http://localhost:8082/metrics
 - `csci_id`：实例访问地址
 - `created_at`：创建时间
 - `delay`：延迟指标（ms）
+- `resource_per_inst`：单个实例资源占用
+- `total_resource_used`：该部署总资源占用
 
-## 测试方法
+## 服务类型支持
 
-### 单元测试
+项目支持以下服务类型及其资源分配：
+- **AR/VR**：单实例占用 60 资源单位
+- **交通流量监测**：单实例占用 15 资源单位
+- **人脸识别**：单实例占用 50 资源单位
+- **语音转文字**：单实例占用 30 资源单位
 
-1. 确保测试文件已编写并位于项目目录中。
-2. 使用以下命令运行所有测试：
+## 资源管理
 
-```bash
-go test ./...
-```
+- **成本计算**：基于资源占用按比例计算
+- **资源限制**：每个站点有总资源限制（site1: 400, site2: 500）
+- **资源监控**：实时监控资源使用情况，防止超限部署
 
-3. 查看测试结果，确保所有测试用例通过。
+## WebUI 实时监控功能
 
-### 接口测试
+index.html 页面包含实时监控功能：
 
-#### 测试部署服务实例接口
+1. **自动数据获取**：每10秒从 C-SMA 的 `/current-metrics` 端点获取数据
+2. **数据展示**：以卡片形式展示各个服务实例的详细信息
+3. **状态更新**：显示上次更新时间、监控站点数、服务总数和实例总数
+4. **错误处理**：当无法连接到 C-SMA 时显示错误信息
+5. **中文支持**：正确显示中文字符
 
-```bash
-curl -X POST http://localhost:8082/deploy \
--H "Content-Type: application/json" \
--d '{"service_id": "test-service", "gas": 3}'
-```
+## 文件上传处理
 
-预期返回：
-```json
-{
-  "success": true,
-  "message": "服务实例部署成功：test-service（3个）",
-  "info": {
-    "service_id": "test-service",
-    "gas": 3,
-    "cost": 6,
-    "csci_id": "http://localhost:8082/test-service-site-1-<timestamp>",
-    "delay": 13
-  }
-}
-```
+`upload_handler.go` 提供了安全的文件上传功能：
+- 支持 ZIP 格式文件上传
+- 文件解压到指定目录
+- 防止路径遍历攻击
+- 启动脚本执行功能
 
-#### 测试 Metrics 接口
+## 故障排除
 
-```bash
-curl -X GET http://localhost:8082/metrics
-```
+### 实例数持续上升
+如果发现 C-SMA 检测的实例数持续上升：
+1. 停止所有服务：`./stop.sh`
+2. 删除数据库文件：`rm -f db/site1.db db/site2.db`
+3. 重新启动服务：`./start.sh`
 
-预期返回：
-```json
-{
-  "success": true,
-  "site_id": "site-1",
-  "count": <实例数量>,
-  "metrics": [
-    {
-      "service_id": "test-service",
-      "gas": 3,
-      "cost": 6,
-      "csci_id": "http://localhost:8082/test-service-site-1-<timestamp>",
-      "delay": 13
-    }
-  ],
-  "time": "<当前时间>"
-}
-```
+### Web 界面无法加载资源
+- 检查 C-SMA 服务是否正常运行
+- 验证网络连接是否正常
+- 确认配置文件中的地址端口是否正确
 
 ## 依赖库
 
-项目使用以下主要依赖：
-
-- [Gin](https://github.com/gin-gonic/gin)：高性能 Web 框架
-- [SQLite3](https://github.com/mattn/go-sqlite3)：SQLite 数据库驱动
+主要依赖：
+- [Gin Framework](https://github.com/gin-gonic/gin)：Web 框架
+- [SQLite3](https://github.com/mattn/go-sqlite3)：SQLite 驱动
+- [Gin-CORS](https://github.com/gin-contrib/cors)：跨域支持
 
 完整依赖请参考 `go.mod` 文件。
-
-## 贡献
-
-欢迎提交 Issue 和 Pull Request 来改进项目！
 
 ## 许可证
 
 本项目采用 [MIT 许可证](LICENSE)。
 
-以下是适配真实网络环境的各组件完整 `main.go` 代码，使用 `真实网络地址1`、`真实网络地址2` 等占位符，你可根据实际服务器IP替换。
+## 贡献
 
-
-### 1. 公共服务平台（`cmd/platform/main.go`）
-负责服务注册与元数据管理，部署在 `真实网络地址1:8080`
-
-### 2. 服务站点1（`cmd/site1/main.go`）
-部署在 `真实网络地址2:8082`，管理真实服务器上的服务实例
-
-
-### 3. 服务站点2（`cmd/site2/main.go`）
-部署在 `真实网络地址4:8085`，与站点1配置类似但目标服务器不同
-
-
-### 4. C-SMA 指标聚合服务（`cmd/sma/main.go`）
-部署在 `真实网络地址6:8083`，聚合多个站点的实例数据
-
-
-### 5. C-PS 路径选择服务（`cmd/ps/main.go`）
-部署在 `真实网络地址7:8084`，为客户端选择最优服务实例
-
-
-
-### 关键改造说明
-1. **真实网络地址替换**  
-   所有 `localhost` 均替换为 `真实网络地址1~7` 占位符，对应不同组件的部署服务器：
-   - 公共服务平台：真实网络地址1:8080  
-   - 服务站点1：真实网络地址2:8082（部署实例到真实网络地址3）  
-   - 服务站点2：真实网络地址4:8085（部署实例到真实网络地址5）  
-   - C-SMA：真实网络地址6:8083  
-   - C-PS：真实网络地址7:8084  
-
-2. **实例部署到真实服务器**  
-   服务站点通过 `SSH+Docker` 在目标服务器（真实网络地址3/5）上启动实例，代码中包含：
-   - SSH命令执行逻辑（`ssh user@ip 'docker run ...'`）  
-   - 动态端口分配（避免实例端口冲突）  
-   - 真实实例地址记录（`http://真实网络地址3:端口`）
-
-3. **跨服务通信**  
-   - 服务站点通过公共服务平台的真实地址（真实网络地址1:8080）查询服务信息  
-   - C-SMA定期从站点1/2的真实地址拉取指标  
-   - C-PS从C-SMA的真实地址获取聚合数据
-
-4. **环境隔离**  
-   - 不同站点使用不同数据库文件（`site1.db`/`site2.db`）  
-   - 实例端口段区分（站点1用9000+，站点2用9100+）  
-   - 资源配置不同（站点1总资源400，站点2总资源200）
-
-替换占位符为实际服务器IP后，即可实现跨服务器的真实服务部署与调用。
+欢迎提交 Issue 和 Pull Request 来改进项目！

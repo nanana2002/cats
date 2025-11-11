@@ -8,6 +8,7 @@ echo ">>> 停止本地 8080/8083/8084 端口进程..."
 lsof -i:8080 | grep -v "PID" | awk '{print $2}' | xargs -r kill -9
 lsof -i:8083 | grep -v "PID" | awk '{print $2}' | xargs -r kill -9
 lsof -i:8084 | grep -v "PID" | awk '{print $2}' | xargs -r kill -9
+lsof -i:9091 | grep -v "PID" | awk '{print $2}' | xargs -r kill -9
 echo ">>> 本地进程处理完成"
 
 

@@ -10,14 +10,14 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Microsoft YaHei', Arial, sans-serif;
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-        
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -26,28 +26,28 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             overflow: hidden;
         }
-        
+
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 30px;
             text-align: center;
         }
-        
+
         .header h1 {
             font-size: 2.5em;
             margin-bottom: 10px;
         }
-        
+
         .header p {
             font-size: 1.1em;
             opacity: 0.9;
         }
-        
+
         .main-content {
             padding: 40px;
         }
-        
+
         .section {
             margin-bottom: 40px;
             padding: 25px;
@@ -55,7 +55,7 @@
             border-radius: 8px;
             background: #fafbfc;
         }
-        
+
         .section h2 {
             color: #333;
             margin-bottom: 20px;
@@ -63,13 +63,13 @@
             border-bottom: 2px solid #667eea;
             padding-bottom: 10px;
         }
-        
+
         .upload-section {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
         }
-        
+
         .upload-box {
             border: 2px dashed #667eea;
             border-radius: 8px;
@@ -78,21 +78,21 @@
             background: #f8f9ff;
             transition: all 0.3s ease;
         }
-        
+
         .upload-box:hover {
             background: #eef2ff;
             transform: translateY(-2px);
         }
-        
+
         .upload-box h3 {
             color: #667eea;
             margin-bottom: 15px;
         }
-        
+
         .upload-box input[type="file"] {
             display: none;
         }
-        
+
         .upload-btn {
             background: #667eea;
             color: white;
@@ -103,21 +103,21 @@
             font-size: 1em;
             transition: background 0.3s ease;
         }
-        
+
         .upload-btn:hover {
             background: #5a67d8;
         }
-        
+
         .resources-section {
             margin-top: 30px;
         }
-        
+
         .resources-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
         }
-        
+
         .resource-card {
             border: 2px solid #e9ecef;
             border-radius: 8px;
@@ -126,37 +126,37 @@
             transition: all 0.3s ease;
             cursor: pointer;
         }
-        
+
         .resource-card:hover {
             border-color: #667eea;
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
         }
-        
+
         .resource-card.selected {
             border-color: #48bb78;
             background: #f0fff4;
             box-shadow: 0 5px 15px rgba(72, 187, 120, 0.2);
         }
-        
+
         .resource-card h3 {
             color: #333;
             margin-bottom: 10px;
             font-size: 1.2em;
         }
-        
+
         .resource-info {
             margin: 10px 0;
         }
-        
+
         .resource-info strong {
             color: #667eea;
         }
-        
+
         .action-buttons {
             text-align: center;
             margin-top: 30px;
         }
-        
+
         .action-btn {
             background: #48bb78;
             color: white;
@@ -168,28 +168,76 @@
             margin: 0 10px;
             transition: background 0.3s ease;
         }
-        
+
         .action-btn:hover {
             background: #38a169;
         }
-        
+
         .action-btn:disabled {
             background: #cbd5e0;
             cursor: not-allowed;
         }
-        
+
         .action-btn.stop {
             background: #e53e3e;
         }
-        
+
         .action-btn.stop:hover {
             background: #c53030;
         }
-        
+
+        /* 服务类型选择框样式 */
+        .service-select {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #667eea;
+            border-radius: 6px;
+            font-size: 1em;
+            background: white;
+            cursor: pointer;
+        }
+
+        .service-select:focus {
+            outline: none;
+            border-color: #5a67d8;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .service-description {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #4a5568;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .service-description.show {
+            opacity: 1;
+        }
+
+        .info-box {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        .info-box strong {
+            color: #2d3748;
+        }
+
         .status-section {
             margin-top: 30px;
         }
-        
+
         .status-item {
             padding: 15px;
             margin: 10px 0;
@@ -197,33 +245,39 @@
             background: #f8f9fa;
             border-left: 4px solid #667eea;
         }
-        
+
         .status-item.success {
             border-left-color: #48bb78;
             background: #f0fff4;
         }
-        
+
         .status-item.error {
             border-left-color: #e53e3e;
             background: #fff5f5;
         }
-        
+
         .deployment-info {
             background: #f8f9fa;
             padding: 20px;
             border-radius: 8px;
             margin-top: 20px;
         }
-        
+
+        .file-list, .script-name {
+            margin-top: 15px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
         @media (max-width: 768px) {
             .upload-section {
                 grid-template-columns: 1fr;
             }
-            
+
             .header h1 {
                 font-size: 2em;
             }
-            
+
             .main-content {
                 padding: 20px;
             }
@@ -236,30 +290,30 @@
             <h1>🚀 算力网络部署平台</h1>
             <p>上传您的代码，选择可用资源，一键部署到目标服务器</p>
         </div>
-        
+
         <div class="main-content">
             <!-- 上传代码部分 -->
             <div class="section">
                 <h2>📁 上传代码文件</h2>
                 <div class="upload-section">
                     <div class="upload-box">
-                        <h3>实际代码文件</h3>
-                        <p>选择包含实际业务逻辑的代码文件</p>
-                        <input type="file" id="codeFile" multiple>
-                        <button class="upload-btn" onclick="document.getElementById('codeFile').click()">选择代码文件</button>
-                        <div id="codeFileList" style="margin-top: 10px; text-align: left;"></div>
+                        <h3>代码包文件</h3>
+                        <p>选择包含所有代码文件的ZIP压缩包</p>
+                        <input type="file" id="codeFile" accept=".zip">
+                        <button type="button" class="upload-btn" onclick="document.getElementById('codeFile').click()">选择ZIP文件</button>
+                        <div id="codeFileList" class="file-list"></div>
                     </div>
-                    
+
                     <div class="upload-box">
                         <h3>启动脚本 (start.sh)</h3>
                         <p>选择用于运行代码的启动脚本</p>
                         <input type="file" id="startScript" accept=".sh">
-                        <button class="upload-btn" onclick="document.getElementById('startScript').click()">选择启动脚本</button>
-                        <div id="startScriptName" style="margin-top: 10px; text-align: left;"></div>
+                        <button type="button" class="upload-btn" onclick="document.getElementById('startScript').click()">选择启动脚本</button>
+                        <div id="startScriptName" class="script-name"></div>
                     </div>
                 </div>
             </div>
-            
+
             <!-- 可用资源部分 -->
             <div class="section resources-section">
                 <h2>🖥️ 选择可用资源</h2>
@@ -267,22 +321,31 @@
                     <!-- 资源卡片将通过JavaScript动态生成 -->
                 </div>
             </div>
-            
+
             <!-- 操作按钮 -->
             <div class="action-buttons">
-                <button class="action-btn" id="deployBtn" onclick="deployCode()" disabled>📤 部署代码</button>
-                <button class="action-btn stop" id="stopBtn" onclick="stopCode()" disabled>⏹️ 停止运行</button>
+                <button type="button" class="action-btn" id="deployBtn" onclick="deployCode()" disabled>📤 准备部署</button>
+                <button type="button" class="action-btn stop" id="stopBtn" onclick="stopCode()" disabled>⏹️ 停止运行</button>
             </div>
-            
+
             <!-- 部署信息显示 -->
             <div class="section status-section" id="deploymentInfo" style="display: none;">
                 <h2>📊 部署状态</h2>
                 <div id="statusMessages"></div>
             </div>
-            
+
             <div class="deployment-info" id="deployInfo" style="display: none;">
                 <h3>部署详情</h3>
                 <div id="deployDetails"></div>
+            </div>
+
+            <!-- 实时监控数据部分 -->
+            <div class="section" id="monitoringSection" style="display: none;">
+                <h2>📊 实时监控数据</h2>
+                <div class="status-item" id="lastUpdateInfo">上次更新: 从未</div>
+                <div id="metricsContainer">
+                    <!-- 指标内容将通过JavaScript动态生成 -->
+                </div>
             </div>
         </div>
     </div>
@@ -293,31 +356,103 @@
             code: [],
             script: null
         };
+        let monitoringInterval = null; // 定时器ID
 
         // 初始化页面
         document.addEventListener('DOMContentLoaded', function() {
+            // 配置C-SMA地址
+            window.SMA_URL = 'http://192.168.67.185:8083';
+            
             loadResources();
             setupEventListeners();
+            startRealTimeMonitoring(); // 启动实时监控
         });
+
+        // 启动实时监控
+        function startRealTimeMonitoring() {
+            // 首次加载数据
+            fetchRealTimeMetrics();
+            // 设置定时刷新（每10秒更新一次）
+            monitoringInterval = setInterval(fetchRealTimeMetrics, 10000);
+        }
+
+        // 获取实时指标数据
+        async function fetchRealTimeMetrics() {
+            try {
+                // 使用相对路径或从配置获取C-SMA地址
+                const smaUrl = window.SMA_URL || 'http://192.168.67.185:8083';
+                const response = await fetch(`${smaUrl}/current-metrics`);
+                if (!response.ok) throw new Error(`获取监控数据失败: ${response.status}`);
+                
+                const data = await response.json();
+                if (data.success) {
+                    displayMetricsData(data);
+                    // 更新上次更新时间（修复：移除多余转义符）
+                    const lastUpdateInfo = document.getElementById('lastUpdateInfo');
+                    lastUpdateInfo.innerHTML = `上次更新: ${data.last_update_time || '未知'} | 监控站点: ${data.monitored_sites || 0} | 服务总数: ${data.service_count || 0} | 实例总数: ${data.total_instances || 0}`;
+                    lastUpdateInfo.className = 'status-item success';
+                } else {
+                    throw new Error('C-SMA返回错误状态');
+                }
+            } catch (error) {
+                console.error('获取实时指标失败:', error);
+                const lastUpdateInfo = document.getElementById('lastUpdateInfo');
+                lastUpdateInfo.innerHTML = `获取监控数据失败: ${error.message}`;
+                lastUpdateInfo.className = 'status-item error';
+            }
+        }
+
+        // 显示指标数据
+        function displayMetricsData(data) {
+            const container = document.getElementById('metricsContainer');
+            const monitoringSection = document.getElementById('monitoringSection');
+            monitoringSection.style.display = 'block';
+
+            if (!data.aggregated_data || Object.keys(data.aggregated_data).length === 0) {
+                container.innerHTML = '<div class="status-item">暂无服务实例数据</div>';
+                return;
+            }
+
+            let html = '';
+            for (const [serviceId, instances] of Object.entries(data.aggregated_data)) {
+                if (instances.length > 0) {
+                    html += `<div class="resource-card" style="margin-bottom: 15px;">`;
+                    html += `<h3>服务: ${serviceId}</h3>`;
+                    html += `<div style="margin-top: 10px;">`;
+                    
+                    instances.forEach(instance => {
+                        html += `
+                            <div style="border-bottom: 1px solid #eee; padding: 8px 0;">
+                                <div class="resource-info">📍 <strong>实例地址:</strong> <a href="${instance.csci_id || '#'}" target="_blank">${instance.csci_id || '未知'}</a></div>
+                                <div class="resource-info">📊 <strong>实例数量:</strong> ${instance.gas || 0}</div>
+                                <div class="resource-info">💰 <strong>成本:</strong> ${instance.cost || '0元'}</div>
+                                <div class="resource-info">⏱️ <strong>延迟:</strong> ${instance.delay || 0}ms</div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `</div></div>`;
+                }
+            }
+            container.innerHTML = html;
+        }
 
         // 从后端API加载可用资源
         async function loadResources() {
             try {
                 const response = await fetch('/api/resources');
-                if (!response.ok) {
-                    throw new Error(`加载资源失败: ${response.status}`);
-                }
-                const resources = await response.json();
+                if (!response.ok) throw new Error(`加载资源失败: ${response.status}`);
                 
+                const resources = await response.json();
                 renderResources(resources);
             } catch (error) {
                 showMessage(`❌ 加载资源失败: ${error.message}`, 'error');
-                
-                // 使用默认资源列表作为备选
+                // 默认资源列表（修复：去掉末尾逗号）
                 const defaultResources = [
                     {
                         id: 'site1',
                         name: '服务器节点 1',
+                        url: 'http://localhost:8081',
                         price: 0.5,
                         availableStorage: '100GB',
                         latency: '20ms',
@@ -328,6 +463,44 @@
                     {
                         id: 'site2',
                         name: '服务器节点 2',
+                        url: 'http://localhost:8085',
+                        price: 0.8,
+                        availableStorage: '250GB',
+                        latency: '35ms',
+                        location: '上海',
+                        cpu: '12核 2.8GHz',
+                        memory: '32GB'
+                    }
+                ];
+                renderResources(defaultResources);
+            }
+        }
+
+        // 渲染资源卡片（修复：模板字符串转义错误）
+        function renderResources(resources) {
+            const grid = document.getElementById('resourcesGrid');
+            grid.innerHTML = '';
+
+            // 检查 resources 是否为 null 或 undefined
+            if (!resources || !Array.isArray(resources)) {
+                showMessage('⚠️ 无法获取资源信息，使用默认资源列表', 'warning');
+                // 使用默认资源列表
+                resources = [
+                    {
+                        id: 'site1',
+                        name: '服务器节点 1',
+                        url: 'http://localhost:8081',
+                        price: 0.5,
+                        availableStorage: '100GB',
+                        latency: '20ms',
+                        location: '北京',
+                        cpu: '8核 3.0GHz',
+                        memory: '16GB'
+                    },
+                    {
+                        id: 'site2',
+                        name: '服务器节点 2',
+                        url: 'http://localhost:8085',
                         price: 0.8,
                         availableStorage: '250GB',
                         latency: '35ms',
@@ -335,26 +508,9 @@
                         cpu: '12核 2.8GHz',
                         memory: '32GB'
                     },
-                    {
-                        id: 'site3',
-                        name: '服务器节点 3',
-                        price: 1.2,
-                        availableStorage: '500GB',
-                        latency: '15ms',
-                        location: '深圳',
-                        cpu: '16核 3.2GHz',
-                        memory: '64GB'
-                    }
                 ];
-                renderResources(defaultResources);
             }
-        }
 
-        // 渲染资源卡片
-        function renderResources(resources) {
-            const grid = document.getElementById('resourcesGrid');
-            grid.innerHTML = '';
-            
             resources.forEach(resource => {
                 const card = document.createElement('div');
                 card.className = 'resource-card';
@@ -374,52 +530,195 @@
 
         // 选择资源
         function selectResource(resource, card) {
-            // 移除之前的选择
-            document.querySelectorAll('.resource-card').forEach(c => {
-                c.classList.remove('selected');
-            });
-            
-            // 选择当前资源
+            document.querySelectorAll('.resource-card').forEach(c => c.classList.remove('selected'));
             card.classList.add('selected');
             selectedResource = resource;
-            
             showMessage(`已选择资源: ${resource.name}`, 'success');
+            updateDeployButton();
+            updateUIForResource(resource); // 根据资源类型更新UI
+        }
+
+        // 根据资源类型更新UI
+        function updateUIForResource(resource) {
+            const uploadSection = document.querySelector('.upload-section');
+            const actionButtons = document.querySelector('.action-buttons');
+            
+            if (!resource) return;
+            
+            if (resource.id === 'site1') {
+                // Site1: 显示服务类型选择，隐藏文件上传
+                uploadSection.innerHTML = `
+                    <div class="upload-box">
+                        <h3>服务类型选择</h3>
+                        <p>选择要部署的服务类型</p>
+                        <select id="serviceType" class="service-select">
+                            <option value="">请选择服务类型</option>
+                            <option value="AR100">AR100 - 基础服务</option>
+                            <option value="AR1760108487856">交通流量监测</option>
+                            <option value="AR1760108501919">人脸识别</option>
+                            <option value="AR1760108514766">语音转文字</option>
+                        </select>
+                        <div id="serviceDescription" class="service-description"></div>
+                    </div>
+                    <div class="upload-box">
+                        <h3>部署配置</h3>
+                        <p>Site1 支持预设服务类型部署</p>
+                        <div class="info-box">
+                            <strong>可用资源:</strong> ${resource.availableStorage}<br>
+                            <strong>当前状态:</strong> ${resource.cpu}<br>
+                            <strong>延迟:</strong> ${resource.latency}
+                        </div>
+                    </div>
+                `;
+                
+                // 添加服务类型选择事件监听
+                setTimeout(() => {
+                    const serviceSelect = document.getElementById('serviceType');
+                    if (serviceSelect) {
+                        serviceSelect.addEventListener('change', function() {
+                            updateServiceDescription(this.value);
+                            updateDeployButton();
+                        });
+                    }
+                }, 100);
+                
+            } else if (resource.id === 'site2') {
+                // Site2: 显示文件上传界面
+                uploadSection.innerHTML = `
+                    <div class="upload-box">
+                        <h3>代码包文件</h3>
+                        <p>选择包含所有代码文件的ZIP压缩包</p>
+                        <input type="file" id="codeFile" accept=".zip">
+                        <button type="button" class="upload-btn" onclick="document.getElementById('codeFile').click()">选择ZIP文件</button>
+                        <div id="codeFileList" class="file-list"></div>
+                    </div>
+
+                    <div class="upload-box">
+                        <h3>启动脚本 (start.sh)</h3>
+                        <p>选择用于运行代码的启动脚本</p>
+                        <input type="file" id="startScript" accept=".sh">
+                        <button type="button" class="upload-btn" onclick="document.getElementById('startScript').click()">选择启动脚本</button>
+                        <div id="startScriptName" class="script-name"></div>
+                    </div>
+                `;
+                
+                // 重新设置文件上传事件监听
+                setTimeout(() => {
+                    setupFileUploadListeners();
+                }, 100);
+            }
+            
+            // 重置上传文件状态
+            uploadedFiles = { code: [], script: null };
             updateDeployButton();
         }
 
-        // 设置事件监听器
+        // 更新服务描述
+        function updateServiceDescription(serviceType) {
+            const description = document.getElementById('serviceDescription');
+            if (!description) return;
+            
+            const descriptions = {
+                'AR100': '基础计算服务，适用于一般性计算任务',
+                'AR1760108487856': '智能交通流量监测服务，实时分析交通状况',
+                'AR1760108501919': '高精度人脸识别服务，支持多目标检测',
+                'AR1760108514766': '实时语音转文字服务，支持多种语言'
+            };
+            
+            description.innerHTML = descriptions[serviceType] || '';
+            description.className = 'service-description' + (serviceType ? ' show' : '');
+        }
+
+        // 设置文件上传事件监听
+        function setupFileUploadListeners() {
+            const codeFile = document.getElementById('codeFile');
+            const startScript = document.getElementById('startScript');
+            
+            if (codeFile) {
+                codeFile.addEventListener('change', function(e) {
+                    const files = Array.from(e.target.files);
+                    uploadedFiles.code = files;
+                    
+                    if (files.length > 0 && !files[0].name.toLowerCase().endsWith('.zip')) {
+                        showMessage('警告: 请上传.zip格式的压缩包文件', 'error');
+                    }
+                    
+                    const fileList = document.getElementById('codeFileList');
+                    if (fileList) {
+                        fileList.innerHTML = '<strong>已选择的文件:</strong><br>';
+                        files.forEach(file => {
+                            fileList.innerHTML += `- ${file.name} (${formatFileSize(file.size)})<br>`;
+                        });
+                    }
+                    
+                    updateDeployButton();
+                });
+            }
+            
+            if (startScript) {
+                startScript.addEventListener('change', function(e) {
+                    if (e.target.files.length > 0) {
+                        const file = e.target.files[0];
+                        uploadedFiles.script = file;
+                        
+                        if (!file.name.toLowerCase().endsWith('.sh')) {
+                            showMessage('警告: 建议上传.sh格式的脚本文件', 'error');
+                        }
+                        
+                        const scriptName = document.getElementById('startScriptName');
+                        if (scriptName) {
+                            scriptName.innerHTML = `<strong>已选择:</strong> ${file.name} (${formatFileSize(file.size)})`;
+                        }
+                    } else {
+                        uploadedFiles.script = null;
+                        const scriptName = document.getElementById('startScriptName');
+                        if (scriptName) {
+                            scriptName.innerHTML = '';
+                        }
+                    }
+                    
+                    updateDeployButton();
+                });
+            }
+        }
+
+        // 设置事件监听器（修复：模板字符串转义错误）
         function setupEventListeners() {
             document.getElementById('codeFile').addEventListener('change', function(e) {
                 const files = Array.from(e.target.files);
                 uploadedFiles.code = files;
-                
-                // 显示已选择的文件
+
+                if (files.length > 0 && !files[0].name.toLowerCase().endsWith('.zip')) {
+                    showMessage('警告: 请上传.zip格式的压缩包文件', 'error');
+                }
+                                // 显示已选择的文件
                 const fileList = document.getElementById('codeFileList');
                 fileList.innerHTML = '<strong>已选择的文件:</strong><br>';
                 files.forEach(file => {
+                    // 修复：移除模板字符串转义符
                     fileList.innerHTML += `- ${file.name} (${formatFileSize(file.size)})<br>`;
                 });
-                
+
                 updateDeployButton();
             });
-            
+
             document.getElementById('startScript').addEventListener('change', function(e) {
                 if (e.target.files.length > 0) {
                     const file = e.target.files[0];
                     uploadedFiles.script = file;
-                    
-                    // 检查是否是shell脚本
+
                     if (!file.name.toLowerCase().endsWith('.sh')) {
                         showMessage('警告: 建议上传.sh格式的脚本文件', 'error');
                     }
-                    
-                    document.getElementById('startScriptName').innerHTML = 
+
+                    // 修复：移除模板字符串转义符
+                    document.getElementById('startScriptName').innerHTML =
                         `<strong>已选择:</strong> ${file.name} (${formatFileSize(file.size)})`;
                 } else {
                     uploadedFiles.script = null;
                     document.getElementById('startScriptName').innerHTML = '';
                 }
-                
+
                 updateDeployButton();
             });
         }
@@ -428,15 +727,27 @@
         function updateDeployButton() {
             const deployBtn = document.getElementById('deployBtn');
             const stopBtn = document.getElementById('stopBtn');
+
+            let canDeploy = false;
+            let buttonText = '📤 部署代码'; // 默认文本
             
-            // 只有在选择了资源、上传了代码文件和启动脚本后才启用部署按钮
-            const canDeploy = selectedResource && 
-                            uploadedFiles.code.length > 0 && 
-                            uploadedFiles.script;
-            
+            if (selectedResource) {
+                if (selectedResource.id === 'site1') {
+                    // Site1: 需要选择服务类型
+                    const serviceSelect = document.getElementById('serviceType');
+                    canDeploy = serviceSelect && serviceSelect.value !== '';
+                    buttonText = '🚀 部署服务'; // Site1使用服务部署
+                } else if (selectedResource.id === 'site2') {
+                    // Site2: 需要代码文件和启动脚本
+                    canDeploy = uploadedFiles.code.length > 0 && uploadedFiles.script;
+                    buttonText = '📤 部署代码'; // Site2使用代码部署
+                }
+            }
+
             deployBtn.disabled = !canDeploy;
-            stopBtn.disabled = !selectedResource; // 只要有选择的资源就可以停止
-            
+            deployBtn.textContent = buttonText; // 更新按钮文字
+            stopBtn.disabled = !selectedResource;
+
             if (canDeploy) {
                 showMessage('✅ 准备就绪，可以进行部署', 'success');
             }
@@ -451,81 +762,107 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
-        // 显示消息
+        // 显示消息（修复：模板字符串转义错误）
         function showMessage(message, type = 'info') {
             const infoDiv = document.getElementById('deploymentInfo');
             infoDiv.style.display = 'block';
-            
+
             const statusDiv = document.getElementById('statusMessages');
             const messageDiv = document.createElement('div');
+            // 修复：移除模板字符串转义符
             messageDiv.className = `status-item ${type}`;
             messageDiv.innerHTML = `
                 <strong>${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'} ${getMessagePrefix(type)}</strong><br>
                 ${message}
             `;
-            
+
             statusDiv.appendChild(messageDiv);
-            
-            // 滚动到最新消息
             statusDiv.scrollTop = statusDiv.scrollHeight;
         }
-        
+
+        // 获取消息前缀（修复：对象语法问题）
         function getMessagePrefix(type) {
-            const prefixes = {
-                'success': '成功',
-                'error': '错误',
-                'info': '信息',
-                'warning': '警告'
-            };
-            return prefixes[type] || '信息';
+            switch (type) {
+                case 'success':
+                    return '成功';
+                case 'error':
+                    return '错误';
+                case 'info':
+                    return '信息';
+                case 'warning':
+                    return '警告';
+                default:
+                    return '信息';
+            }
         }
 
-        // 部署代码
+        // 部署代码（修复：模板字符串转义错误）
         async function deployCode() {
-            if (!selectedResource || uploadedFiles.code.length === 0 || !uploadedFiles.script) {
-                showMessage('请先选择资源并上传代码文件和启动脚本', 'error');
+            // 根据选择的资源类型，采用不同的验证逻辑
+            if (!selectedResource) {
+                showMessage('请先选择一个资源', 'error');
                 return;
             }
 
-            showMessage(`开始部署代码到 ${selectedResource.name}...`, 'info');
-            
+            // 根据站点类型验证输入
+            if (selectedResource.id === 'site1') {
+                // Site1: 需要选择服务类型
+                const serviceSelect = document.getElementById('serviceType');
+                if (!serviceSelect || !serviceSelect.value) {
+                    showMessage('请先选择服务类型', 'error');
+                    return;
+                }
+            } else if (selectedResource.id === 'site2') {
+                // Site2: 需要代码文件和启动脚本
+                if (uploadedFiles.code.length === 0 || !uploadedFiles.script) {
+                    showMessage('请先上传代码文件和启动脚本', 'error');
+                    return;
+                }
+            }
+
+            // 修复：移除模板字符串转义符
+            showMessage(`开始部署到 ${selectedResource.name}...`, 'info');
+
             try {
-                // 创建FormData对象来上传文件
                 const formData = new FormData();
-                
-                // 添加站点ID
                 formData.append('site_id', selectedResource.id);
-                
-                // 添加代码文件
-                uploadedFiles.code.forEach(file => {
-                    formData.append('codeFiles', file);
-                });
-                
-                // 添加启动脚本
-                if (uploadedFiles.script) {
+
+                if (selectedResource.id === 'site2') {
+                    // Site2: 上传代码文件
+                    uploadedFiles.code.forEach(file => {
+                        formData.append('codeFiles', file);
+                    });
+                }
+
+                // 添加启动脚本（对site1是服务类型，对site2是脚本文件）
+                if (selectedResource.id === 'site1') {
+                    // Site1: 服务类型
+                    const serviceSelect = document.getElementById('serviceType');
+                    if (serviceSelect) {
+                        formData.append('startScript', serviceSelect.value);
+                    }
+                } else if (selectedResource.id === 'site2' && uploadedFiles.script) {
+                    // Site2: 脚本文件
                     formData.append('startScript', uploadedFiles.script);
                 }
-                
-                // 发送部署请求
+
                 const response = await fetch('/api/deploy', {
                     method: 'POST',
                     body: formData
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (result.success) {
-                    showMessage(`✅ 代码已成功部署到 ${result.site.name}!`, 'success');
-                    
-                    // 显示部署详情
+                    // 修复：移除模板字符串转义符
+                    showMessage(`✅ 代码已成功部署到 ${result.site?.name || selectedResource.name}!`, 'success');
                     showDeploymentDetails(result);
-                    
-                    // 启用停止按钮
                     document.getElementById('stopBtn').disabled = false;
                 } else {
                     throw new Error(result.error || '部署失败');
                 }
             } catch (error) {
+                // 修复：移除模板字符串转义符
                 showMessage(`❌ 部署过程中出现错误: ${error.message}`, 'error');
             }
         }
@@ -534,33 +871,37 @@
         function showDeploymentDetails(result) {
             const deployInfo = document.getElementById('deployInfo');
             deployInfo.style.display = 'block';
-            
+
             let filesList = '';
             if (result.files && result.files.length > 0) {
                 filesList = result.files.map(f => `- ${f}`).join('<br>');
             }
-            
+
             const details = document.getElementById('deployDetails');
+            const site = result.site || selectedResource;
             details.innerHTML = `
-                <div><strong>目标服务器:</strong> ${result.site.name}</div>
-                <div><strong>服务器位置:</strong> ${result.site.location}</div>
-                <div><strong>部署时间:</strong> ${new Date().toLocaleString()}</div>
-                <div><strong>上传文件:</strong><br>${filesList || '无'}</div>
-                ${result.startScript ? `<div><strong>启动脚本:</strong> ${result.startScript}</div>` : ''}
-                <div><strong>预计成本:</strong> ¥${(result.site.price * 1).toFixed(2)}/小时</div>
-                <div><strong>网络延迟:</strong> ${result.site.latency}</div>
+                <div>
+                    <div><strong>目标服务器:</strong> ${site.name}</div>
+                    <div><strong>服务器位置:</strong> ${site.location}</div>
+                    <div><strong>部署时间:</strong> ${new Date().toLocaleString()}</div>
+                    <div><strong>上传文件:</strong><br>${filesList || '无'}</div>
+                    ${result.startScript ? `<div><strong>启动脚本:</strong> ${result.startScript}</div>` : ''}
+                    <div><strong>预计成本:</strong> ¥${(site.price * 1).toFixed(2)}/小时</div>
+                    <div><strong>网络延迟:</strong> ${site.latency}</div>
+                </div>
             `;
         }
 
-        // 停止运行代码
+        // 停止运行代码（修复：模板字符串转义错误）
         async function stopCode() {
             if (!selectedResource) {
                 showMessage('请先选择一个资源', 'error');
                 return;
             }
 
+            // 修复：移除模板字符串转义符
             showMessage(`正在停止在 ${selectedResource.name} 上运行的服务...`, 'info');
-            
+
             try {
                 const response = await fetch('/api/stop', {
                     method: 'POST',
@@ -571,21 +912,28 @@
                         site_id: selectedResource.id
                     })
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (result.success) {
-                    showMessage(`✅ 已成功停止在 ${selectedResource.name} 上运行的服务`, 'success');
-                    
-                    // 禁用停止按钮
+                    // 修复：移除模板字符串转义符
+                    showMessage(`✅ 已成功停止在 ${result.site?.name || selectedResource.name} 上运行的服务`, 'success');
                     document.getElementById('stopBtn').disabled = true;
                 } else {
                     throw new Error(result.error || '停止失败');
                 }
             } catch (error) {
+                // 修复：移除模板字符串转义符
                 showMessage(`❌ 停止过程中出现错误: ${error.message}`, 'error');
             }
         }
+
+        // 页面卸载时清理定时器
+        window.addEventListener('beforeunload', function() {
+            if (monitoringInterval) {
+                clearInterval(monitoringInterval);
+            }
+        });
     </script>
 </body>
 </html>

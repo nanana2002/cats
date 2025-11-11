@@ -140,7 +140,7 @@ for svc in platform c-sma c-ps; do
   fi
 done
 
-go run web_server.go 
+nohup ./webui > logs/webui.log 2>&1 &
 
 # ==================== 访问提示 (保持不变) ====================
 cat <<EOF

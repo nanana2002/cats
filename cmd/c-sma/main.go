@@ -198,12 +198,24 @@ func aggregateSiteMetrics(siteURL string, newMetrics []models.ServiceInstanceInf
 		return
 	}
 	siteKey := parsedURL.Host // e.g., "192.168.235.48:8081"
+	
+	// 从站点URL和CSCI_ID格式中提取正确的站点标识
+	var siteIdentifier string
+	// 根据CSCI_ID的实际格式：site-1使用localhost:8082，site-2使用localhost:8085
+	if strings.Contains(siteURL, "8081") {
+		siteIdentifier = "localhost:8082"  // site-1的实际监听地址
+	} else if strings.Contains(siteURL, "8085") {
+		siteIdentifier = "localhost:8085"  // site-2的实际监听地址
+	} else {
+		siteIdentifier = siteKey // 回退到使用host
+	}
 
-	// 删除旧实例
+	// 删除旧实例 - 使用更准确的匹配逻辑
 	for serviceID, oldInstances := range aggregatedMetrics {
 		var retained []models.ServiceInstanceInfo
 		for _, inst := range oldInstances {
-			if !strings.Contains(inst.CSCI_ID, siteKey) {
+			// 检查实例是否属于当前站点（通过CSCI_ID中的地址标识）
+			if !strings.Contains(inst.CSCI_ID, siteIdentifier) {
 				retained = append(retained, inst)
 			}
 		}

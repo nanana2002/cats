@@ -1,0 +1,28 @@
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /api/resources            --> main.getResources (3 handlers)
+[GIN-debug] POST   /api/deploy               --> main.deployCode (3 handlers)
+[GIN-debug] POST   /api/stop                 --> main.stopCode (3 handlers)
+[GIN-debug] GET    /api/status/:siteId       --> main.getStatus (3 handlers)
+[GIN-debug] GET    /                         --> main.main.(*RouterGroup).StaticFile.func2 (3 handlers)
+[GIN-debug] HEAD   /                         --> main.main.(*RouterGroup).StaticFile.func2 (3 handlers)
+[GIN-debug] GET    /index.html               --> main.main.(*RouterGroup).StaticFile.func3 (3 handlers)
+[GIN-debug] HEAD   /index.html               --> main.main.(*RouterGroup).StaticFile.func3 (3 handlers)
+[GIN-debug] GET    /static/*filepath         --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (3 handlers)
+[GIN-debug] HEAD   /static/*filepath         --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (3 handlers)
+[GIN-debug] GET    /assets/*filepath         --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (3 handlers)
+[GIN-debug] HEAD   /assets/*filepath         --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (3 handlers)
+🚀 Web界面服务器启动在 :9091
+🌐 访问 http://localhost:9091 查看界面
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on :9091
+[GIN] 2025/11/12 - 06:54:04 | 304 |      58.497µs |             ::1 | GET      "/"
+[GIN] 2025/11/12 - 06:54:04 | 200 |   77.505234ms |             ::1 | GET      "/api/resources"
+[GIN] 2025/11/12 - 06:54:04 | 304 |      63.914µs |             ::1 | GET      "/favicon.ico"
+[GIN] 2025/11/12 - 06:54:41 | 500 | 30.239075901s |             ::1 | POST     "/api/deploy"
+[GIN] 2025/11/12 - 06:55:13 | 500 | 12.695634728s |             ::1 | POST     "/api/deploy"
