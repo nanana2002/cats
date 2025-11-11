@@ -7,7 +7,8 @@ import (
 	"net/http"
 	"sync"
 	"time"
-
+    "strconv" // ❗ 需要添加 strconv 导入，因为它在其他站点中被使用，尽管此文件中没有直接使用
+    
 	"cmas-cats-go/config"
 	"cmas-cats-go/models"
 
@@ -29,7 +30,7 @@ const (
 	DBFile          = "./db/site2.db" // 数据库文件路径
 	SiteID          = "site-2"        // 站点唯一标识
 	TotalResource   = 400             // 站点总资源单位（可根据硬件调整）
-	ResourcePerCost = 20              // 每20单位资源对应1个成本单位（成本换算系数）
+	ResourcePerCost = 40              // 每40单位资源对应1个成本单位（成本换算系数）
 )
 
 func main() {
@@ -61,13 +62,20 @@ func main() {
 	r.GET("/health", healthCheckHandler)         // 健康检查接口
 	r.GET("/resource-status", getResourceStatus) // 查看资源占用状态
 
-	// 5. 启动服务
-	listenAddr := "0.0.0.0:8082"
+	// 5. 启动服务配置
+    // ❗ 修正：监听地址使用 0.0.0.0 确保远程 SSH 启动时可以绑定，端口从配置中获取
+    listenAddr := "0.0.0.0:" + strconv.Itoa(config.Cfg.Site2.Port)
+    
 	publicPlatformURL := fmt.Sprintf("%s/api/v1/services/", config.Cfg.Platform.URL)
 
-	printStartInfo()
-	fmt.Printf("📌 监听地址：http://%s\n", listenAddr)
+    // ❗ 修正：将原有的启动信息打印函数 printStartInfo() 挪到 r.Run() 之前 ❗
+    // ❗ 原始代码的 printStartInfo() 里面有重复的 listenAddr 打印，已在下面简化
 	fmt.Printf("📌 平台地址：%s\n", publicPlatformURL)
+    printStartInfo()
+    
+    // 移除 printStartInfo() 中的 listenAddr 打印，在下面统一打印
+    fmt.Printf("📌 监听地址：http://%s\n", listenAddr)
+
 
 	if err := r.Run(listenAddr); err != nil {
 		fmt.Printf("服务启动失败：%v\n", err)
@@ -75,7 +83,7 @@ func main() {
 }
 
 // ------------------------------
-// 核心1：数据库初始化与资源加载
+// 核心1：数据库初始化与资源加载 (保持不变)
 // ------------------------------
 
 // initDB：初始化SQLite数据库（含资源相关字段）
@@ -136,7 +144,7 @@ func loadUsedResource() error {
 }
 
 // ------------------------------
-// 核心2：部署接口（支持多服务类型）
+// 核心2：部署接口（支持多服务类型） (保持不变)
 // ------------------------------
 
 // deployServiceHandler：处理服务部署请求（按资源占比计算成本）
@@ -202,6 +210,7 @@ func deployServiceHandler(c *gin.Context) {
 	cost := calculateCostByResource(totalResourceNeed)
 
 	// 7. 生成实例基础信息
+    // ❗ 修正：监听地址使用配置中的 Site2 IP
 	instanceID := fmt.Sprintf("%s-%s-%d", req.ServiceID, SiteID, time.Now().UnixNano()/1e6)
 	listenAddr := fmt.Sprintf("%s:%d", config.Cfg.Site2.IP, config.Cfg.Site2.Port)
 	csciID := fmt.Sprintf("http://%s/%s", listenAddr, instanceID)
@@ -258,7 +267,7 @@ func deployServiceHandler(c *gin.Context) {
 }
 
 // ------------------------------
-// 核心3：服务信息查询与资源计算工具函数
+// 核心3：服务信息查询与资源计算工具函数 (保持不变)
 // ------------------------------
 
 // getServiceNameByID：按服务ID查询公共服务平台，获取服务名（含缓存）
@@ -337,10 +346,10 @@ func calculateCostByResource(totalResource int) int {
 }
 
 // ------------------------------
-// 辅助接口：状态查询与日志打印
+// 辅助接口：状态查询与日志打印 (修正了 printStartInfo)
 // ------------------------------
 
-// getResourceStatus：查看当前资源占用状态
+// getResourceStatus：查看当前资源占用状态 (保持不变)
 func getResourceStatus(c *gin.Context) {
 	resourceMutex.RLock()
 	defer resourceMutex.RUnlock()
@@ -361,13 +370,16 @@ func getResourceStatus(c *gin.Context) {
 	})
 }
 
-// getMetricsHandler：暴露实例metrics（供C-SMA拉取）
+// getMetricsHandler：暴露实例metrics（供C-SMA拉取） (保持不变)
 func getMetricsHandler(c *gin.Context) {
+	fmt.Println("[DEBUG] /metrics endpoint accessed")
+
 	rows, err := db.Query(`
 		SELECT service_id, gas, cost, csci_id, delay
 		FROM deployed_services
 		ORDER BY created_at DESC`)
 	if err != nil {
+		fmt.Printf("[ERROR] Failed to query metrics: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success": false,
 			"message": "查询metrics失败：" + err.Error(),
@@ -382,11 +394,13 @@ func getMetricsHandler(c *gin.Context) {
 		if err := rows.Scan(
 			&m.ServiceID, &m.Gas, &m.Cost, &m.CSCI_ID, &m.Delay,
 		); err != nil {
-			fmt.Printf("⚠️ 解析metrics失败：%v\n", err)
+			fmt.Printf("[WARNING] Failed to parse metrics row: %v\n", err)
 			continue
 		}
 		metrics = append(metrics, m)
 	}
+
+	fmt.Printf("[DEBUG] Metrics retrieved: %d records\n", len(metrics))
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
@@ -397,7 +411,7 @@ func getMetricsHandler(c *gin.Context) {
 	})
 }
 
-// healthCheckHandler：健康检查接口（含资源状态）
+// healthCheckHandler：健康检查接口（含资源状态） (保持不变)
 func healthCheckHandler(c *gin.Context) {
 	// 检查数据库连接和资源状态
 	resourceMutex.RLock()
@@ -439,8 +453,7 @@ func printStartInfo() {
 	usageRate := fmt.Sprintf("%.1f%%", float64(usedResource)/float64(TotalResource)*100)
 	fmt.Printf("\n✅ 服务站点（site-2）启动成功！\n")
 	fmt.Printf("📌 站点ID：%s\n", SiteID)
-	listenAddr := fmt.Sprintf("%s:%d", config.Cfg.Site2.IP, config.Cfg.Site2.Port)
-	fmt.Printf("📌 监听地址：http://%s\n", listenAddr)
+    // 移除：原有的监听地址打印，避免重复
 	fmt.Printf("📌 当前资源：已用%d / 总%d 单位（使用率%s）\n",
 		usedResource, TotalResource, usageRate)
 	fmt.Printf("📌 可用接口：\n")

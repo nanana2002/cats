@@ -17,15 +17,12 @@
 
 [GIN-debug] GET    /                         --> main.main.func1 (3 handlers)
 [GIN-debug] GET    /dashboard                --> main.main.func2 (3 handlers)
-[15:53:06] 同步C-SMA成功：4个服务，共6个实例
-✅ 预加载成功！当前缓存 4 个服务的实例数据
+⚠️ 预加载C-SMA数据失败：C-SMA返回非200状态码：503（将在首次请求时重试）
 
 ✅ C-PS 启动成功！
-📌 监听地址：http://172.28.125.175:8084
-📌 C-SMA 同步地址：http://172.28.125.175:8083/sync
+📌 监听地址：http://192.168.67.185:8084
+📌 C-SMA 同步地址：http://192.168.67.185:8083/sync
 📌 缓存过期时间：5m0s
 [GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
 Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
-[GIN-debug] Listening and serving HTTP on 172.28.125.175:8084
-[GIN-debug] [ERROR] listen tcp 172.28.125.175:8084: bind: address already in use
-❌ C-PS 启动失败：listen tcp 172.28.125.175:8084: bind: address already in use
+[GIN-debug] Listening and serving HTTP on 127.0.0.1:8084
