@@ -7,16 +7,16 @@
  - using env:	export GIN_MODE=release
  - using code:	gin.SetMode(gin.ReleaseMode)
 
-[GIN-debug] POST   /request-service          --> main.handleClientRequest (4 handlers)
-[GIN-debug] GET    /refresh-metrics          --> main.refreshMetricsCache (3 handlers)
-[GIN-debug] GET    /cached-metrics           --> main.getCachedMetrics (3 handlers)
+[GIN-debug] POST   /request-service          --> main.handleClientRequest (5 handlers)
+[GIN-debug] GET    /refresh-metrics          --> main.refreshMetricsCache (4 handlers)
+[GIN-debug] GET    /cached-metrics           --> main.getCachedMetrics (4 handlers)
 [GIN-debug] Loaded HTML Templates (3): 
 	- 
 	- dashboard.html
 	- index.html
 
-[GIN-debug] GET    /                         --> main.main.func1 (3 handlers)
-[GIN-debug] GET    /dashboard                --> main.main.func2 (3 handlers)
+[GIN-debug] GET    /                         --> main.main.func1 (4 handlers)
+[GIN-debug] GET    /dashboard                --> main.main.func2 (4 handlers)
 ⚠️ 预加载C-SMA数据失败：C-SMA返回非200状态码：503（将在首次请求时重试）
 
 ✅ C-PS 启动成功！

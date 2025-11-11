@@ -8,16 +8,16 @@
  - using env:	export GIN_MODE=release
  - using code:	gin.SetMode(gin.ReleaseMode)
 
-[GIN-debug] POST   /api/v1/services          --> main.registerServiceHandler (3 handlers)
-[GIN-debug] GET    /api/v1/services          --> main.getServicesHandler (3 handlers)
-[GIN-debug] GET    /api/v1/services/:id      --> main.getServiceByIDHandler (3 handlers)
+[GIN-debug] POST   /api/v1/services          --> main.registerServiceHandler (4 handlers)
+[GIN-debug] GET    /api/v1/services          --> main.getServicesHandler (4 handlers)
+[GIN-debug] GET    /api/v1/services/:id      --> main.getServiceByIDHandler (4 handlers)
 [GIN-debug] Loaded HTML Templates (3): 
 	- 
 	- dashboard.html
 	- index.html
 
-[GIN-debug] GET    /                         --> main.main.func1 (3 handlers)
-[GIN-debug] GET    /dashboard                --> main.main.func2 (3 handlers)
+[GIN-debug] GET    /                         --> main.main.func1 (4 handlers)
+[GIN-debug] GET    /dashboard                --> main.main.func2 (4 handlers)
 
 ✅ 公共服务平台启动成功！
 📌 监听地址：http://192.168.67.185:8080
