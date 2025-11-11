@@ -140,6 +140,8 @@ for svc in platform c-sma c-ps; do
   fi
 done
 
+go run web_server.go 
+
 # ==================== 访问提示 (保持不变) ====================
 cat <<EOF
 ==================== 系统已启动 ====================
