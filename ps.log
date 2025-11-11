@@ -11,13 +11,13 @@
 [GIN-debug] GET    /refresh-metrics          --> main.refreshMetricsCache (3 handlers)
 [GIN-debug] GET    /cached-metrics           --> main.getCachedMetrics (3 handlers)
 [GIN-debug] Loaded HTML Templates (3): 
-	- 
 	- dashboard.html
 	- index.html
+	- 
 
 [GIN-debug] GET    /                         --> main.main.func1 (3 handlers)
 [GIN-debug] GET    /dashboard                --> main.main.func2 (3 handlers)
-[14:14:22] 同步C-SMA成功：0个服务，共0个实例
+[16:16:49] 同步C-SMA成功：0个服务，共0个实例
 ✅ 预加载成功！当前缓存 0 个服务的实例数据
 
 ✅ C-PS 启动成功！
